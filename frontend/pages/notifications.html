@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookVault - Notifications</title>
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/notifications.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Left Sidebar -->
+        <div class="sidebar">
+            <div class="logo-section">
+                <div class="logo">
+                    <i class="fas fa-book"></i>
+                    <span>BookVault</span>
+                </div>
+                <div class="menu-label">menu</div>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="clients.html" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>Clients</span>
+                </a>
+                <a href="billing.html" class="nav-item">
+                    <i class="fas fa-file-invoice"></i>
+                    <span>Billing Statement</span>
+                </a>
+                <a href="notifications.html" class="nav-item active">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                </a>
+                <a href="archive.html" class="nav-item">
+                    <i class="fas fa-archive"></i>
+                    <span>Archive</span>
+                </a>
+            </nav>
+            
+            <div class="general-section">
+                <div class="section-label">general</div>
+                <a href="settings.html" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="help.html" class="nav-item">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Help & Support</span>
+                </a>
+                <a href="#" class="nav-item" onclick="logout()" type="button">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Header -->
+            <div class="header">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search notifications..." id="notificationSearch">
+                </div>
+                <div class="header-actions">
+                    <button class="notification-icon" onclick="goToNotifications()" type="button">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationBadge">3</span>
+                    </button>
+                    <button class="user-avatar" onclick="openProfileModal()" type="button">
+                        <img id="userAvatarHeader" src="" alt="User">
+                    </button>
+                </div>
+            </div>
+
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Notifications & Reminders</h1>
+                    <p>Stay on top of important deadlines and client updates</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn-secondary" onclick="markAllRead()" type="button">
+                        <i class="fas fa-check-double"></i>
+                        Mark All Read
+                    </button>
+                    <a href="settings.html" class="btn-primary">
+                        <i class="fas fa-cog"></i>
+                        Settings
+                    </a>
+                </div>
+            </div>
+
+            <!-- Notification Stats -->
+            <div class="notification-stats">
+                <div class="stat-card urgent">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="urgentCount">3</div>
+                        <div class="stat-label">Urgent</div>
+                        <div class="stat-sublabel">Overdue payments</div>
+                    </div>
+                </div>
+                <div class="stat-card due-soon">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="dueSoonCount">8</div>
+                        <div class="stat-label">Due Soon</div>
+                        <div class="stat-sublabel">Next 7 days</div>
+                    </div>
+                </div>
+                <div class="stat-card reminders">
+                    <div class="stat-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="remindersCount">12</div>
+                        <div class="stat-label">Reminders</div>
+                        <div class="stat-sublabel">Scheduled</div>
+                    </div>
+                </div>
+                <div class="stat-card updates">
+                    <div class="stat-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="updatesCount">5</div>
+                        <div class="stat-label">Updates</div>
+                        <div class="stat-sublabel">System & client</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h3>Quick Actions</h3>
+                <div class="action-cards">
+                    <button class="action-card" onclick="sendPaymentReminders()" type="button">
+                        <div class="action-icon">
+                            <i class="fas fa-paper-plane"></i>
+                        </div>
+                        <div class="action-info">
+                            <h4>Send Payment Reminders</h4>
+                            <p>Email overdue payment notices</p>
+                        </div>
+                    </button>
+                    <button class="action-card" onclick="scheduleReminder()" type="button">
+                        <div class="action-icon">
+                            <i class="fas fa-calendar-plus"></i>
+                        </div>
+                        <div class="action-info">
+                            <h4>Schedule Reminder</h4>
+                            <p>Set up custom notifications</p>
+                        </div>
+                    </button>
+                    <button class="action-card" onclick="viewCalendar()" type="button">
+                        <div class="action-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="action-info">
+                            <h4>View Calendar</h4>
+                            <p>See all upcoming deadlines</p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-section">
+                <div class="filter-group">
+                    <select class="filter-select" id="typeFilter">
+                        <option value="all">All Types</option>
+                        <option value="payment">Payment Due</option>
+                        <option value="overdue">Overdue</option>
+                        <option value="reminder">Reminder</option>
+                        <option value="update">Update</option>
+                    </select>
+                    <select class="filter-select" id="statusFilter">
+                        <option value="all">All Status</option>
+                        <option value="unread">Unread</option>
+                        <option value="read">Read</option>
+                    </select>
+                    <button class="filter-btn" onclick="clearFilters()" type="button">
+                        <i class="fas fa-times"></i>
+                        Clear Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- Notifications List -->
+            <div class="notifications-container">
+                <div class="notifications-header">
+                    <h3>Recent Notifications</h3>
+                    <div class="view-toggle">
+                        <button class="view-btn active" onclick="switchView('list')" type="button">
+                            <i class="fas fa-list"></i>
+                        </button>
+                        <button class="view-btn" onclick="switchView('card')" type="button">
+                            <i class="fas fa-th"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="notifications-list" id="notificationsList">
+                    <!-- Notifications will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Reminder Modal -->
+    <div class="modal-overlay" id="scheduleReminderModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Schedule Reminder</h2>
+                <button class="modal-close" onclick="closeScheduleReminderModal()" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="scheduleReminderForm">
+                    <div class="form-group">
+                        <label>Reminder Title *</label>
+                        <input type="text" id="reminderTitle" required placeholder="e.g., Follow up with client">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="reminderDescription" rows="3" placeholder="Additional details..."></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date *</label>
+                            <input type="date" id="reminderDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Time *</label>
+                            <input type="time" id="reminderTime" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Related Client</label>
+                        <select id="reminderClient">
+                            <option value="">Select client (optional)</option>
+                            <!-- Populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Priority</label>
+                        <select id="reminderPriority">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeScheduleReminderModal()" type="button">Cancel</button>
+                <button class="btn-primary" onclick="saveReminder()" type="button">Schedule Reminder</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Settings Modal -->
+    <div class="modal-overlay" id="notificationSettingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Notification Settings</h2>
+                <button class="modal-close" onclick="closeNotificationSettingsModal()" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="notificationSettingsForm">
+                    <div class="form-group">
+                        <label>Email Notifications</label>
+                        <input type="checkbox" id="emailNotifications" checked>
+                        <span>Receive notifications via email</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Push Notifications</label>
+                        <input type="checkbox" id="pushNotifications">
+                        <span>Receive push notifications</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Notification Types</label>
+                        <div>
+                            <input type="checkbox" id="paymentNotifications" checked>
+                            <span>Payment Due</span>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="overdueNotifications" checked>
+                            <span>Overdue Payments</span>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="reminderNotifications" checked>
+                            <span>Reminders</span>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="updateNotifications" checked>
+                            <span>Updates</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeNotificationSettingsModal()" type="button">Cancel</button>
+                <button class="btn-primary" onclick="saveNotificationSettings()" type="button">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="profile-modal-overlay">
+        <div class="profile-modal-content">
+            <button class="profile-modal-close" onclick="closeProfileModal()" type="button">&times;</button>
+            <div class="profile-header">
+                <img id="userAvatarProfile" src="" alt="User" class="profile-image">
+                <div class="profile-info">
+                    <h3 id="profileName">User Name</h3>
+                    <p>Senior Bookkeeper</p>
+                    <span class="profile-status">Online</span>
+                </div>
+            </div>
+            <div class="profile-actions">
+                <a href="#" onclick="editProfile()" type="button"><i class="fas fa-user-edit"></i> Edit Profile</a>
+                <a href="#" onclick="changePassword()" type="button"><i class="fas fa-key"></i> Change Password</a>
+                <a href="settings.html" type="button"><i class="fas fa-cog"></i> Settings</a>
+                <a href="#" onclick="logout()" type="button"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/notifications.js"></script>
+</body>
+</html>

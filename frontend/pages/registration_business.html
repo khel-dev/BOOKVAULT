@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookVault - Business Information</title>
+    <link rel="stylesheet" href="../css/registration_business.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo-card">
+            <div class="logo-content">
+                <div class="logo-icon">
+                    <svg width="120" height="80" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 20 L50 10 L80 20 L80 60 L50 70 L20 60 Z" fill="#00adef" opacity="0.8"/>
+                        <path d="M30 25 L60 15 L90 25 L90 65 L60 75 L30 65 Z" fill="#2e3192" opacity="0.9"/>
+                        <path d="M40 30 L70 20 L100 30 L100 70 L70 80 L40 70 Z" fill="#00adef"/>
+                    </svg>
+                </div>
+                <h1 class="logo-text">BOOKVAULT</h1>
+                <p class="logo-subtitle">Professional Bookkeeping Made Simple</p>
+            </div>
+        </div>
+
+        <div class="registration-card">
+            <div class="registration-header">
+                <h2 class="brand-title">
+                    Join BookVault 
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="#2e3192" stroke-width="2"/>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="#2e3192" stroke-width="2"/>
+                        <path d="M8 7h8M8 11h6" stroke="#2e3192" stroke-width="2"/>
+                    </svg>
+                </h2>
+                <p class="welcome-text">Create your professional bookkeeping account</p>
+            </div>
+
+            <form class="registration-form" id="businessForm">
+                <div class="step-indicator">
+                    <div class="step completed" data-step="1">
+                        <span class="step-number">1</span>
+                        <span class="step-label">Personal</span>
+                    </div>
+                    <div class="step active" data-step="2">
+                        <span class="step-number">2</span>
+                        <span class="step-label">Business</span>
+                    </div>
+                    <div class="step" data-step="3">
+                        <span class="step-number">3</span>
+                        <span class="step-label">Account</span>
+                    </div>
+                </div>
+
+                <div class="form-step active">
+                    <h3 class="step-title">Business Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="businessName" class="form-label">Business/Firm Name</label>
+                        <input type="text" id="businessName" name="businessName" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="businessType" class="form-label">Business Type</label>
+                        <select id="businessType" name="businessType" class="form-input" required>
+                            <option value="">Select Business Type</option>
+                            <option value="sole-proprietorship">Sole Proprietorship</option>
+                            <option value="partnership">Partnership</option>
+                            <option value="corporation">Corporation</option>
+                            <option value="llc">LLC</option>
+                            <option value="accounting-firm">Accounting Firm</option>
+                            <option value="freelance">Freelance Bookkeeper</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="experience" class="form-label">Years of Experience</label>
+                        <select id="experience" name="experience" class="form-input" required>
+                            <option value="">Select Experience</option>
+                            <option value="0-1">0-1 years</option>
+                            <option value="2-5">2-5 years</option>
+                            <option value="6-10">6-10 years</option>
+                            <option value="11-15">11-15 years</option>
+                            <option value="15+">15+ years</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clientCount" class="form-label">Expected Number of Clients</label>
+                        <select id="clientCount" name="clientCount" class="form-input" required>
+                            <option value="">Select Range</option>
+                            <option value="1-10">1-10 clients</option>
+                            <option value="11-25">11-25 clients</option>
+                            <option value="26-50">26-50 clients</option>
+                            <option value="51-100">51-100 clients</option>
+                            <option value="100+">100+ clients</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address" class="form-label">Business Address</label>
+                        <textarea id="address" name="address" class="form-input" rows="3" placeholder="Enter your business address"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-navigation">
+                    <a href="registration_personal.html" class="nav-button prev-button">Back to Personal Info</a>
+                    <button type="submit" class="nav-button next-button">Continue to Account Setup</button>
+                </div>
+
+                <div class="divider">
+                    <span class="divider-line"></span>
+                    <span class="divider-text">or</span>
+                    <span class="divider-line"></span>
+                </div>
+
+                <a href="login.html" class="login-link">Already have an account? Sign In</a>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/registration_business.js"></script>
+</body>
+</html>
