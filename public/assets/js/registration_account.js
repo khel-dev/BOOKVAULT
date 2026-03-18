@@ -238,6 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
           "registeredUser",
           JSON.stringify({
             uid: user.uid,
+            username,
             email: email,
             fullName: `${existingData.firstName || ""} ${existingData.lastName || ""}`.trim(),
             businessName: existingData.businessName || "",
@@ -249,8 +250,14 @@ document.addEventListener("DOMContentLoaded", () => {
         showNotification("Account created successfully! Redirecting to login...", "success")
 
         setTimeout(() => {
+          // After registration, sign out so user can login manually
+          if (window.authService) {
+            window.authService.logout().catch(() => {})
+          }
           localStorage.removeItem("registrationData")
-          window.location.href = "login.html"
+          localStorage.removeItem("registeredUser")
+          // Redirect to login with email pre-filled
+          window.location.href = `login.html?email=${encodeURIComponent(email)}`
         }, 1200)
       } catch (err) {
         console.error("Registration error:", err)

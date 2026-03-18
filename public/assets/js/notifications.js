@@ -606,6 +606,10 @@ function showNotification(message, type = "info") {
 
 function logout() {
     console.log("Logging out...");
+    if (typeof bookvaultLogout === "function") {
+        bookvaultLogout();
+        return;
+    }
     if (confirm("Are you sure you want to logout?")) {
         window.location.href = "login.html";
     }

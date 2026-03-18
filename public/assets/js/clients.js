@@ -1,104 +1,34 @@
-// Function to get and save active and archived clients from localStorage
-function getClients() {
-    const storedClients = localStorage.getItem('clientsData');
-    if (storedClients) {
-        return JSON.parse(storedClients);
-    }
-    return [
-        {
-            id: 1,
-            businessName: "Niyan Vulcanizing Shop",
-            contactPerson: "Juan Dela Cruz",
-            email: "juan@niyanvulcanizing.com",
-            phone: "+63 912 345 6789",
-            address: "123 Main St, Quezon City",
-            tin: "123-456-789-000",
-            businessType: "business",
-            monthlyFee: 2500,
-            startDate: "2024-01-15",
-            status: "active",
-            lastPayment: "2024-12-01",
-        },
-        {
-            id: 2,
-            businessName: "Jepoy's N Grills",
-            contactPerson: "Joseph Santos",
-            email: "jepoy@ngrills.com",
-            phone: "+63 917 234 5678",
-            address: "456 Food St, Manila",
-            tin: "234-567-890-111",
-            businessType: "business",
-            monthlyFee: 3000,
-            startDate: "2024-02-01",
-            status: "active",
-            lastPayment: "2024-12-01",
-        },
-        {
-            id: 3,
-            businessName: "Bating's Fried Rice",
-            contactPerson: "Roberto Bating",
-            email: "berto@batingrice.com",
-            phone: "+63 918 345 6789",
-            address: "789 Rice Ave, Makati",
-            tin: "345-678-901-222",
-            businessType: "individual",
-            monthlyFee: 1500,
-            startDate: "2024-03-10",
-            status: "pending",
-            lastPayment: "2024-11-01",
-        },
-        {
-            id: 4,
-            businessName: "Sticky Printing Shop",
-            contactPerson: "Maria Garcia",
-            email: "maria@stickyprint.com",
-            phone: "+63 919 456 7890",
-            address: "321 Print Blvd, Pasig",
-            tin: "456-789-012-333",
-            businessType: "business",
-            monthlyFee: 2000,
-            startDate: "2024-04-05",
-            status: "active",
-            lastPayment: "2024-12-01",
-        },
-        {
-            id: 5,
-            businessName: "Ashop Sari-Sari Store",
-            contactPerson: "Ana Reyes",
-            email: "ana@ashopstore.com",
-            phone: "+63 920 567 8901",
-            address: "654 Store St, Taguig",
-            tin: "567-890-123-444",
-            businessType: "individual",
-            monthlyFee: 1200,
-            startDate: "2024-05-20",
-            status: "inactive",
-            lastPayment: "2024-10-01",
-        },
-    ];
-}
-
-function saveClients(clients) {
-    localStorage.setItem('clientsData', JSON.stringify(clients));
-    console.log("Active clients saved to localStorage");
-}
-
-function getArchivedClients() {
-    const storedArchived = localStorage.getItem('archivedClients');
-    if (storedArchived) {
-        return JSON.parse(storedArchived);
-    }
-    return [];
-}
-
-function saveArchivedClients(archivedClients) {
-    localStorage.setItem('archivedClients', JSON.stringify(archivedClients));
-    console.log("Archived clients saved to localStorage");
-}
-
-let clients = getClients();
-let filteredClients = [...clients];
+let clients = [];
+let filteredClients = [];
 let currentView = "grid";
+let isLoading = true;
+let lastError = null;
+
+function getUid() {
+    const uid = window.authService?.getCurrentUserId?.() || null;
+    if (uid) return uid;
+    const stored = localStorage.getItem("registeredUser");
+    if (!stored) return null;
+    try { return JSON.parse(stored)?.uid || null; } catch { return null; }
+}
+
+function setLoading(loading) {
+    isLoading = loading;
+    renderClients();
+}
+
+function showInlineState(container, { icon, title, body, actionLabel, actionFn } = {}) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #6b7280;">
+        <i class="${icon || "fas fa-users"}" style="font-size: 44px; margin-bottom: 18px; opacity: 0.6;"></i>
+        <h3 style="margin:0; color:#2e3192;">${title || ""}</h3>
+        <p style="margin:10px 0 18px;">${body || ""}</p>
+        ${actionLabel ? `<button class="btn-primary" type="button" id="inlineActionBtn" style="margin:0 auto;">${actionLabel}</button>` : ""}
+      </div>
+    `;
+    const btn = document.getElementById("inlineActionBtn");
+    if (btn && typeof actionFn === "function") btn.addEventListener("click", actionFn);
+}
 
 // Initialize page
 document.addEventListener("DOMContentLoaded", () => {
@@ -123,7 +53,33 @@ document.addEventListener("DOMContentLoaded", () => {
     updateClientStats();
     setupEventListeners();
     initializeModals();
+
+    // Load real clients from Firestore
+    loadClientsFromFirestore();
 });
+
+async function loadClientsFromFirestore() {
+    const uid = getUid();
+    if (!uid) return;
+    if (!window.userDataService) {
+        lastError = "Data service not ready. Please refresh.";
+        isLoading = false;
+        renderClients();
+        return;
+    }
+    try {
+        setLoading(true);
+        lastError = null;
+        clients = await window.userDataService.getClients(uid);
+        filteredClients = [...clients];
+    } catch (e) {
+        console.error(e);
+        lastError = "Failed to load clients from database.";
+    } finally {
+        setLoading(false);
+        updateClientStats();
+    }
+}
 
 // User Profile Functions
 function updateProfilePicture(profilePicture) {
@@ -237,13 +193,14 @@ function closeProfileModal() {
 
 // Client Management Functions
 function updateClientStats() {
-    const totalCount = clients.filter(c => c.status !== "deleted").length;
-    const activeCount = clients.filter(c => c.status === 'active').length;
+    const totalCount = clients.length;
+    const activeCount = clients.filter(c => (c.status || "active") === 'active').length;
     const now = new Date();
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const newCount = clients.filter(c => c.status !== "deleted" && new Date(c.startDate) >= firstOfMonth).length;
+    const newCount = clients.filter(c => c.startDate && new Date(c.startDate) >= firstOfMonth).length;
     const pendingCount = clients.filter(c => {
-        if (c.status !== 'active') return false;
+        if ((c.status || "active") !== 'active') return false;
+        if (!c.lastPayment) return false;
         const lastPay = new Date(c.lastPayment);
         const daysSince = (now - lastPay) / (1000 * 60 * 60 * 24);
         return daysSince > 30;
@@ -270,12 +227,11 @@ function applyFilters() {
     const typeFilter = document.getElementById("typeFilter").value;
 
     filteredClients = clients.filter((client) => {
-        if (client.status === "deleted") return false;
-        const statusMatch = statusFilter === "all" || client.status === statusFilter;
+        const statusMatch = statusFilter === "all" || (client.status || "active") === statusFilter;
         const typeMatch = typeFilter === "all" || client.businessType === typeFilter;
-        const searchMatch = client.businessName.toLowerCase().includes(searchTerm) ||
-                            client.contactPerson.toLowerCase().includes(searchTerm) ||
-                            client.email.toLowerCase().includes(searchTerm);
+        const searchMatch = (client.businessName || "").toLowerCase().includes(searchTerm) ||
+                            (client.contactPerson || "").toLowerCase().includes(searchTerm) ||
+                            (client.email || "").toLowerCase().includes(searchTerm);
         return statusMatch && typeMatch && searchMatch;
     });
 
@@ -287,7 +243,7 @@ function clearFilters() {
     document.getElementById("statusFilter").value = "all";
     document.getElementById("typeFilter").value = "all";
     document.getElementById("clientSearch").value = "";
-    filteredClients = clients.filter(c => c.status !== "deleted");
+    filteredClients = [...clients];
     renderClients();
     console.log("Filters cleared");
 }
@@ -309,28 +265,59 @@ function switchView(view) {
 
 function renderClients() {
     const container = document.getElementById("clientsContainer");
-    
+
+    if (isLoading) {
+        showInlineState(container, {
+            icon: "fas fa-circle-notch fa-spin",
+            title: "Loading clients…",
+            body: "Fetching your client list from the database.",
+        });
+        return;
+    }
+
+    if (lastError) {
+        showInlineState(container, {
+            icon: "fas fa-triangle-exclamation",
+            title: "Couldn’t load clients",
+            body: lastError,
+            actionLabel: "Retry",
+            actionFn: loadClientsFromFirestore,
+        });
+        return;
+    }
+
+    if (clients.length === 0) {
+        showInlineState(container, {
+            icon: "fas fa-users",
+            title: "No clients yet",
+            body: "Add your first client to start managing records and billing.",
+            actionLabel: "Add New Client",
+            actionFn: () => openAddClientModal(false),
+        });
+        return;
+    }
+
     if (filteredClients.length === 0) {
-        container.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #a3a3a3;">
-                <i class="fas fa-users" style="font-size: 48px; margin-bottom: 20px; opacity: 0.5;"></i>
-                <h3>No clients found</h3>
-                <p>Try adjusting your search or filters</p>
-            </div>
-        `;
+        showInlineState(container, {
+            icon: "fas fa-magnifying-glass",
+            title: "No matches found",
+            body: "Try adjusting your search or filters.",
+            actionLabel: "Clear filters",
+            actionFn: clearFilters,
+        });
         return;
     }
 
     container.innerHTML = filteredClients
         .map(
             (client) => `
-            <div class="client-card ${currentView === "list" ? "list-item" : ""}" onclick="viewClient(${client.id})">
+            <div class="client-card ${currentView === "list" ? "list-item" : ""}" onclick="viewClient('${client.id}')">
                 <div class="client-header">
                     <div class="client-info">
                         <h3>${client.businessName}</h3>
                         <p>${client.contactPerson}</p>
                     </div>
-                    <span class="client-status status-${client.status}">${client.status.toUpperCase()}</span>
+                    <span class="client-status status-${client.status || "active"}">${(client.status || "active").toUpperCase()}</span>
                 </div>
                 
                 <div class="client-details">
@@ -344,7 +331,7 @@ function renderClients() {
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Monthly Fee:</span>
-                        <span class="detail-value">₱${client.monthlyFee.toLocaleString()}</span>
+                        <span class="detail-value">₱${Number(client.monthlyFee || 0).toLocaleString()}</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">TIN:</span>
@@ -353,13 +340,13 @@ function renderClients() {
                 </div>
                 
                 <div class="client-actions">
-                    <button class="action-btn btn-edit" onclick="editClient(${client.id}); event.stopPropagation();" tabindex="0">
+                    <button class="action-btn btn-edit" onclick="editClient('${client.id}'); event.stopPropagation();" tabindex="0">
                         <i class="fas fa-edit"></i> Edit
                     </button>
-                    <button class="action-btn btn-invoice" onclick="generateInvoice(${client.id}); event.stopPropagation();" tabindex="0">
+                    <button class="action-btn btn-invoice" onclick="generateInvoice('${client.id}'); event.stopPropagation();" tabindex="0">
                         <i class="fas fa-file-invoice"></i> Invoice
                     </button>
-                    <button class="action-btn btn-delete" onclick="deleteClient(${client.id}); event.stopPropagation();" tabindex="0">
+                    <button class="action-btn btn-delete" onclick="deleteClient('${client.id}'); event.stopPropagation();" tabindex="0">
                         <i class="fas fa-trash"></i> Delete
                     </button>
                 </div>
@@ -387,52 +374,55 @@ function saveOrUpdateClient() {
     }
 
     const editingId = document.getElementById("addClientModal").dataset.editingId;
-
-    if (editingId) {
-        const clientId = parseInt(editingId);
-        const clientIndex = clients.findIndex(c => c.id === clientId);
-        if (clientIndex !== -1) {
-            clients[clientIndex] = {
-                ...clients[clientIndex],
-                businessName,
-                contactPerson,
-                email,
-                phone,
-                address,
-                tin,
-                businessType,
-                monthlyFee,
-                startDate,
-            };
-            alert("Client updated successfully!");
-        } else {
-            alert("Client not found for update.");
-            return;
-        }
-    } else {
-        const newClient = {
-            id: clients.length ? Math.max(...clients.map(c => c.id)) + 1 : 1,
-            businessName,
-            contactPerson,
-            email,
-            phone,
-            address,
-            tin,
-            businessType,
-            monthlyFee,
-            startDate,
-            status: "active",
-            lastPayment: new Date().toISOString().split("T")[0],
-        };
-        clients.unshift(newClient);
-        alert("Client added successfully!");
+    const uid = getUid();
+    if (!uid) {
+        alert("Please login again.");
+        window.location.href = "login.html";
+        return;
+    }
+    if (!window.userDataService) {
+        alert("Data service not ready. Please refresh.");
+        return;
     }
 
-    saveClients(clients);
-    filteredClients = clients.filter(c => c.status !== "deleted");
-    renderClients();
-    updateClientStats();
-    closeAddClientModal();
+    (async () => {
+        try {
+            if (editingId) {
+                await window.userDataService.updateClient(uid, editingId, {
+                    businessName,
+                    contactPerson,
+                    email,
+                    phone,
+                    address,
+                    tin,
+                    businessType,
+                    monthlyFee,
+                    startDate,
+                });
+                alert("Client updated successfully!");
+            } else {
+                await window.userDataService.addClient(uid, {
+                    businessName,
+                    contactPerson,
+                    email,
+                    phone,
+                    address,
+                    tin,
+                    businessType,
+                    monthlyFee,
+                    startDate,
+                    status: "active",
+                    lastPayment: new Date().toISOString().split("T")[0],
+                });
+                alert("Client added successfully!");
+            }
+            closeAddClientModal();
+            await loadClientsFromFirestore();
+        } catch (e) {
+            console.error(e);
+            alert("Failed to save client. Please try again.");
+        }
+    })();
 }
 
 function viewClient(clientId) {
@@ -448,9 +438,9 @@ function viewClient(clientId) {
             Address: ${client.address || "N/A"}
             TIN: ${client.tin || "N/A"}
             Business Type: ${client.businessType}
-            Monthly Fee: ₱${client.monthlyFee.toLocaleString()}
+            Monthly Fee: ₱${Number(client.monthlyFee || 0).toLocaleString()}
             Start Date: ${client.startDate}
-            Status: ${client.status.toUpperCase()}
+            Status: ${(client.status || "active").toUpperCase()}
             Last Payment: ${client.lastPayment}
         `);
     }
@@ -504,26 +494,24 @@ Please remit payment to BookVault Bookkeeping Services.
 
 function deleteClient(clientId) {
     const client = clients.find((c) => c.id === clientId);
-    if (client && confirm(`Are you sure you want to delete ${client.businessName}? This will move the client to the archive.`)) {
-        // Mark client as deleted
-        client.status = "deleted";
-        client.deletedAt = new Date().toISOString(); // Track deletion time
-        // Move to archived clients
-        const archivedClients = getArchivedClients();
-        archivedClients.push(client);
-        saveArchivedClients(archivedClients);
-        // Remove from active clients
-        clients = clients.filter(c => c.id !== clientId);
-        saveClients(clients);
-        filteredClients = clients.filter(c => c.status !== "deleted");
-        renderClients();
-        updateClientStats();
-        alert(`${client.businessName} has been deleted and moved to archive`);
-    }
+    const uid = getUid();
+    if (!uid) return;
+    if (!client) return;
+    if (!confirm(`Are you sure you want to delete ${client.businessName}?`)) return;
+    (async () => {
+        try {
+            await window.userDataService.deleteClient(uid, clientId);
+            alert("Client deleted.");
+            await loadClientsFromFirestore();
+        } catch (e) {
+            console.error(e);
+            alert("Failed to delete client.");
+        }
+    })();
 }
 
 function exportClients() {
-    const activeClients = clients.filter(c => c.status !== "deleted");
+    const activeClients = clients;
     const csvContent = "data:text/csv;charset=utf-8," 
         + "ID,Business Name,Contact Person,Email,Phone,Address,TIN,Business Type,Monthly Fee,Start Date,Status,Last Payment\n"
         + activeClients.map(client => `${client.id},"${client.businessName.replace(/"/g, '""')}","${client.contactPerson.replace(/"/g, '""')}","${client.email}","${client.phone}","${client.address ? client.address.replace(/"/g, '""') : "N/A"}","${client.tin || "N/A"}",${client.businessType},${client.monthlyFee},${client.startDate},${client.status},${client.lastPayment}`).join("\n");
@@ -538,8 +526,10 @@ function exportClients() {
 }
 
 function logout() {
-    if (confirm("Are you sure you want to logout?")) {
-        localStorage.removeItem("registeredUser");
-        window.location.href = "login.html";
+    if (typeof bookvaultLogout === "function") {
+        bookvaultLogout();
+        return;
     }
+    localStorage.removeItem("registeredUser");
+    window.location.href = "login.html";
 }

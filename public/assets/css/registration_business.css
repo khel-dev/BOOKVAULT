@@ -5,12 +5,13 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background: linear-gradient(rgba(0, 173, 239, 0.7), rgba(46, 49, 146, 0.7)),
-    url("https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-5Fb1ZrBn8GM07aBhrIZ7GnPzy0cqB8.png");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background:
+    linear-gradient(rgba(0, 173, 239, 0.18), rgba(46, 49, 146, 0.12)),
+    radial-gradient(1000px 700px at 20% 10%, rgba(0, 173, 239, 0.22), transparent 55%),
+    radial-gradient(900px 700px at 80% 20%, rgba(46, 49, 146, 0.18), transparent 55%),
+    radial-gradient(900px 800px at 50% 80%, rgba(11, 153, 255, 0.10), transparent 60%),
+    #f7fbff;
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -29,11 +30,12 @@ body {
 
 /* Logo Card */
 .logo-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  border-radius: 22px;
   padding: 60px 40px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  box-shadow: 0 24px 80px rgba(2, 28, 47, 0.14);
   text-align: center;
   min-width: 350px;
   position: sticky;

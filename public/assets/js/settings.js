@@ -228,6 +228,10 @@ document.getElementById("passwordForm").addEventListener("submit", (e) => {
 
 // Logout function
 function logout() {
+    if (typeof bookvaultLogout === "function") {
+        bookvaultLogout()
+        return
+    }
     if (confirm("Are you sure you want to logout?")) {
         localStorage.clear()
         window.location.href = "login.html"

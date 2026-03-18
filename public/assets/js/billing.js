@@ -1,93 +1,50 @@
-function getBillingStatements() {
-    const storedBillingStatements = localStorage.getItem('billingStatementsData');
-    if (storedBillingStatements) {
-        return JSON.parse(storedBillingStatements);
-    }
-    return [
-        {
-            id: "BS-2024-001",
-            clientId: 1,
-            clientName: "Niyan Vulcanizing Shop",
-            amount: 2500,
-            status: "paid",
-            billingPeriodStart: "2024-12-01",
-            billingPeriodEnd: "2024-12-31",
-            paidDate: "2024-12-10",
-            services: [{ description: "Monthly Bookkeeping Services", amount: 2500 }],
-            notes: "",
-        },
-        {
-            id: "BS-2024-002",
-            clientId: 2,
-            clientName: "Jepoy's N Grills",
-            amount: 3000,
-            status: "paid",
-            billingPeriodStart: "2024-12-01",
-            billingPeriodEnd: "2024-12-31",
-            paidDate: "2024-12-12",
-            services: [{ description: "Monthly Bookkeeping Services", amount: 3000 }],
-            notes: "",
-        },
-        {
-            id: "BS-2024-003",
-            clientId: 3,
-            clientName: "Bating's Fried Rice",
-            amount: 1500,
-            status: "pending",
-            billingPeriodStart: "2024-12-01",
-            billingPeriodEnd: "2024-12-31",
-            services: [{ description: "Monthly Bookkeeping Services", amount: 1500 }],
-            notes: "",
-        },
-        {
-            id: "BS-2024-004",
-            clientId: 4,
-            clientName: "Sticky Printing Shop",
-            amount: 2000,
-            status: "overdue",
-            billingPeriodStart: "2024-11-01",
-            billingPeriodEnd: "2024-11-30",
-            services: [{ description: "Monthly Bookkeeping Services", amount: 2000 }],
-            notes: "",
-        },
-        {
-            id: "BS-2024-005",
-            clientId: 5,
-            clientName: "Ashop Sari-Sari Store",
-            amount: 1200,
-            status: "overdue",
-            billingPeriodStart: "2024-11-01",
-            billingPeriodEnd: "2024-11-30",
-            services: [{ description: "Monthly Bookkeeping Services", amount: 1200 }],
-            notes: "",
-        },
-    ];
-}
-
-function saveBillingStatements(billingStatements) {
-    localStorage.setItem('billingStatementsData', JSON.stringify(billingStatements));
-}
-
-function getClients() {
-    const storedClients = localStorage.getItem('clientsData');
-    return storedClients ? JSON.parse(storedClients) : [];
-}
-
-function updateDashboardMetrics() {
-    const totalRevenue = billingStatements.reduce((sum, bs) => sum + (bs.status === "paid" ? bs.amount : 0), 0);
-    const upcomingDues = billingStatements.reduce((sum, bs) => sum + (["pending", "overdue"].includes(bs.status) ? bs.amount : 0), 0);
-    const dashboardData = {
-        totalRevenue,
-        upcomingDues,
-        totalClients: getClients().length,
-        totalBillingStatements: billingStatements.length,
-    };
-    localStorage.setItem('dashboardData', JSON.stringify(dashboardData));
-}
-
-let billingStatements = getBillingStatements();
-let filteredBillingStatements = [...billingStatements];
+let billingStatements = [];
+let filteredBillingStatements = [];
 let revenueChart = null;
+let isLoading = true;
+let lastError = null;
+let cachedClients = [];
+
+function getUid() {
+    const uid = window.authService?.getCurrentUserId?.() || null;
+    if (uid) return uid;
+    const stored = localStorage.getItem("registeredUser");
+    if (!stored) return null;
+    try { return JSON.parse(stored)?.uid || null; } catch { return null; }
+}
+
+async function loadClients() {
+    const uid = getUid();
+    if (!uid || !window.userDataService) return [];
+    cachedClients = await window.userDataService.getClients(uid);
+    return cachedClients;
+}
+
+async function loadBillingStatements() {
+    const uid = getUid();
+    if (!uid) return;
+    if (!window.userDataService) {
+        lastError = "Data service not ready. Please refresh.";
+        isLoading = false;
+        renderBillingStatements();
+        return;
+    }
+    try {
+        isLoading = true;
+        lastError = null;
+        renderBillingStatements();
+        billingStatements = await window.userDataService.getBillingRecords(uid);
+        filteredBillingStatements = [...billingStatements];
+    } catch (e) {
+        console.error(e);
+        lastError = "Failed to load billing statements.";
+    } finally {
+        isLoading = false;
+        renderBillingStatements();
+        updateBillingStats();
+        populateReminders();
+    }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     console.log("Billing page loaded, initializing...");
@@ -107,13 +64,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     renderBillingStatements();
-    populateNewClientSelect();
+    (async () => {
+        try { await loadClients(); } catch {}
+        populateNewClientSelect();
+        populateBulkClients();
+    })();
     setupEventListeners();
     generateNewBillingStatementNumber();
     setNewDefaultDates();
     updateBillingStats();
-    populateBulkClients();
     populateReminders();
+    loadBillingStatements();
 });
 
 function updateProfilePicture(profilePicture) {
@@ -272,9 +233,9 @@ function populateNewClientSelect() {
     if (select) {
         select.innerHTML =
             '<option value="">Choose a client...</option>' +
-            getClients()
-                .filter((client) => client.status === "active")
-                .map((client) => `<option value="${client.id}">${client.businessName}</option>`)
+            (cachedClients || [])
+                .filter((client) => (client.status || "active") === "active")
+                .map((client) => `<option value="${client.id}">${client.businessName || "Unnamed Client"}</option>`)
                 .join("");
     } else {
         console.error("New Client select element not found");
@@ -312,7 +273,7 @@ function openNewCreateBillingStatementModal(clientId = null) {
         if (clientId) {
             const clientSelect = document.getElementById("newClientSelect");
             if (clientSelect) clientSelect.value = clientId;
-            const client = getClients().find(c => c.id === parseInt(clientId));
+            const client = (cachedClients || []).find(c => c.id === clientId);
             if (client) {
                 const servicesContainer = document.getElementById("newServicesContainer");
                 if (servicesContainer) {
@@ -449,7 +410,7 @@ function createNewBillingStatement() {
         return;
     }
     const clientId = Number.parseInt(clientSelect.value);
-    const client = getClients().find((c) => c.id === clientId);
+    const client = (cachedClients || []).find((c) => c.id === String(clientId)) || (cachedClients || []).find(c => c.id === clientId);
 
     if (!client) {
         showNotification("Please select a client", "error");
@@ -489,28 +450,29 @@ function createNewBillingStatement() {
         notes: document.getElementById("newBillingNotes")?.value,
     };
 
-    billingStatements.unshift(newBillingStatement);
-    saveBillingStatements(billingStatements);
-    filteredBillingStatements = [...billingStatements];
-    renderBillingStatements();
-    updateBillingStats();
-    updateDashboardMetrics();
-    closeNewCreateBillingStatementModal();
-
-    const clientsData = getClients();
-    const clientIndex = clientsData.findIndex(c => c.id === clientId);
-    if (clientIndex !== -1) {
-        clientsData[clientIndex].lastPayment = newBillingStatement.billingPeriodEnd;
-        localStorage.setItem('clientsData', JSON.stringify(clientsData));
+    const uid = getUid();
+    if (!uid || !window.userDataService) {
+        showNotification("Please login again.", "error");
+        return;
     }
 
-    showNotification(`Billing Statement ${newBillingStatement.id} created and sent to ${client.businessName}`, "success");
+    (async () => {
+        try {
+            await window.userDataService.addBillingRecord(uid, newBillingStatement);
+            closeNewCreateBillingStatementModal();
+            showNotification(`Billing Statement created for ${client.businessName}`, "success");
+            await loadBillingStatements();
+        } catch (e) {
+            console.error(e);
+            showNotification("Failed to create billing statement.", "error");
+        }
+    })();
 }
 
 function saveNewDraft() {
     console.log("Saving new draft");
     const clientId = Number.parseInt(document.getElementById("newClientSelect")?.value);
-    const client = getClients().find((c) => c.id === clientId);
+    const client = (cachedClients || []).find((c) => c.id === String(clientId)) || (cachedClients || []).find(c => c.id === clientId);
 
     if (!client) {
         showNotification("Please select a client", "error");
@@ -542,15 +504,23 @@ function saveNewDraft() {
         notes: document.getElementById("newBillingNotes")?.value,
     };
 
-    billingStatements.unshift(newBillingStatement);
-    saveBillingStatements(billingStatements);
-    filteredBillingStatements = [...billingStatements];
-    renderBillingStatements();
-    updateBillingStats();
-    updateDashboardMetrics();
-    closeNewCreateBillingStatementModal();
+    const uid = getUid();
+    if (!uid || !window.userDataService) {
+        showNotification("Please login again.", "error");
+        return;
+    }
 
-    showNotification(`Billing Statement ${newBillingStatement.id} saved as draft`, "info");
+    (async () => {
+        try {
+            await window.userDataService.addBillingRecord(uid, newBillingStatement);
+            closeNewCreateBillingStatementModal();
+            showNotification(`Draft saved`, "info");
+            await loadBillingStatements();
+        } catch (e) {
+            console.error(e);
+            showNotification("Failed to save draft.", "error");
+        }
+    })();
 }
 
 function viewBillingStatement(billingStatementId) {
@@ -618,21 +588,26 @@ function sendBillingStatement(billingStatementId) {
 function deleteBillingStatement(billingStatementId) {
     console.log(`Deleting billing statement ${billingStatementId}`);
     if (confirm(`Are you sure you want to delete billing statement ${billingStatementId}?`)) {
-        billingStatements = billingStatements.filter((bs) => bs.id !== billingStatementId);
-        saveBillingStatements(billingStatements);
-        filteredBillingStatements = [...billingStatements];
-        renderBillingStatements();
-        updateBillingStats();
-        updateDashboardMetrics();
-        showNotification(`Billing Statement ${billingStatementId} deleted`, "info");
+        const uid = getUid();
+        if (!uid || !window.userDataService) return;
+        (async () => {
+            try {
+                await window.userDataService.deleteBillingRecord(uid, billingStatementId);
+                showNotification(`Billing Statement deleted`, "info");
+                await loadBillingStatements();
+            } catch (e) {
+                console.error(e);
+                showNotification("Failed to delete billing statement.", "error");
+            }
+        })();
     }
 }
 
 function populateBulkClients() {
     const container = document.getElementById("bulkClientsList");
     if (container) {
-        container.innerHTML = getClients()
-            .filter((client) => client.status === "active")
+        container.innerHTML = (cachedClients || [])
+            .filter((client) => (client.status || "active") === "active")
             .map(
                 (client) => `
                 <div class="bulk-client-item">
@@ -691,8 +666,14 @@ function generateBulkBillingStatements() {
     const billingPeriodEnd = document.getElementById("bulkBillingPeriodEnd").value;
     const useMonthlyFee = document.getElementById("useMonthlyFee").checked;
 
+    const uid = getUid();
+    if (!uid || !window.userDataService) {
+        showNotification("Please login again.", "error");
+        return;
+    }
+
     selectedClients.forEach((clientId) => {
-        const client = getClients().find((c) => c.id === clientId);
+        const client = (cachedClients || []).find((c) => c.id === String(clientId)) || (cachedClients || []).find(c => c.id === clientId);
         if (client) {
             const nextNumber = billingStatements.length + 1;
             const billingStatementId = `BS-${new Date().getFullYear()}-${nextNumber.toString().padStart(3, "0")}`;
@@ -708,27 +689,14 @@ function generateBulkBillingStatements() {
                 services: [{ description: serviceDescription, amount }],
                 notes: "",
             };
-            billingStatements.unshift(newBillingStatement);
-            client.lastPayment = billingPeriodEnd;
+            // Save each statement to Firestore
+            window.userDataService.addBillingRecord(uid, newBillingStatement).catch(console.error);
         }
     });
 
-    const clientsData = getClients();
-    selectedClients.forEach((clientId) => {
-        const clientIndex = clientsData.findIndex(c => c.id === clientId);
-        if (clientIndex !== -1) {
-            clientsData[clientIndex].lastPayment = billingPeriodEnd;
-        }
-    });
-    localStorage.setItem('clientsData', JSON.stringify(clientsData));
-
-    saveBillingStatements(billingStatements);
-    filteredBillingStatements = [...billingStatements];
-    renderBillingStatements();
-    updateBillingStats();
-    updateDashboardMetrics();
     closeBulkBillingStatementModal();
     showNotification(`${selectedClients.length} billing statements generated`, "success");
+    setTimeout(() => loadBillingStatements(), 600);
 }
 
 function populateReminders() {
@@ -877,6 +845,10 @@ function changePassword() {
 
 function logout() {
     console.log("Logging out");
+    if (typeof bookvaultLogout === "function") {
+        bookvaultLogout({ confirmFirst: false });
+        return;
+    }
     localStorage.removeItem("registeredUser");
     window.location.href = "login.html";
 }

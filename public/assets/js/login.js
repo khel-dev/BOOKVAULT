@@ -4,24 +4,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const passwordInput = document.getElementById("password")
   const createAccountLink = document.querySelector(".create-account-link")
 
+  // Pre-fill email from registration if provided
+  const params = new URLSearchParams(window.location.search)
+  const emailParam = params.get("email")
+  if (emailParam) {
+    usernameInput.value = emailParam
+    passwordInput.focus()
+    // Clean URL
+    window.history.replaceState({}, document.title, window.location.pathname)
+  }
+
+  // Reliable redirect after Firebase auth state becomes "logged in"
+  window.addEventListener("userLoggedIn", () => {
+    if (window.location.pathname.endsWith("/login.html")) {
+      window.location.href = "dashboard.html"
+    }
+  })
+
   // Link to registration page
   createAccountLink.addEventListener("click", (e) => {
     e.preventDefault()
     window.location.href = "registration_personal.html"
   })
 
-  // If already logged in, go straight to dashboard
-  let authCheckInterval = setInterval(() => {
-    if (window.firebaseInitialized && window.authService && window.authService.isLoggedIn()) {
-      clearInterval(authCheckInterval)
-      if (window.location.pathname.endsWith("/login.html")) {
-        window.location.href = "dashboard.html"
-      }
-    }
-  }, 100)
-
-  // Stop checking after 5 seconds
-  setTimeout(() => clearInterval(authCheckInterval), 5000)
+  // Intentionally do NOT auto-redirect if already logged in.
+  // This keeps the login screen predictable (especially right after registration).
 
   // Form validation and submission
   form.addEventListener("submit", (e) => {
@@ -95,6 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
           "registeredUser",
           JSON.stringify({
             uid: user?.uid,
+            username: profile?.username || `${profile?.firstName || ""}`.trim() || email,
             email: profile?.email || email,
             firstName: profile?.firstName || "",
             lastName: profile?.lastName || "",
@@ -105,9 +113,10 @@ document.addEventListener("DOMContentLoaded", () => {
         )
 
         showNotification("✅ Login successful! Welcome to BookVault", "success")
+        // Redirect is handled by auth state event as well; keep this as a fallback
         setTimeout(() => {
           window.location.href = "dashboard.html"
-        }, 600)
+        }, 400)
       } catch (err) {
         console.error("Login error:", err)
         console.error("Full error details:", JSON.stringify(err, null, 2))

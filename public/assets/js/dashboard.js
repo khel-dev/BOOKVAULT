@@ -29,84 +29,22 @@ function updateProfilePicture(profilePicture) {
     }
 }
 
-// Function to get clients from localStorage (synchronized with clients.js)
-function getClients() {
-    const storedClients = localStorage.getItem('clientsData');
-    if (storedClients) {
-        return JSON.parse(storedClients);
-    }
-    return [
-        {
-            id: 1,
-            businessName: "Niyan Vulcanizing Shop",
-            contactPerson: "Juan Dela Cruz",
-            email: "juan@niyanvulcanizing.com",
-            phone: "+63 912 345 6789",
-            address: "123 Main St, Quezon City",
-            tin: "123-456-789-000",
-            businessType: "business",
-            monthlyFee: 2500,
-            startDate: "2024-01-15",
-            status: "active",
-            lastPayment: "2024-12-01"
-        },
-        {
-            id: 2,
-            businessName: "Jepoy's N Grills",
-            contactPerson: "Joseph Santos",
-            email: "jepoy@ngrills.com",
-            phone: "+63 917 234 5678",
-            address: "456 Food St, Manila",
-            tin: "234-567-890-111",
-            businessType: "business",
-            monthlyFee: 3000,
-            startDate: "2024-02-01",
-            status: "active",
-            lastPayment: "2024-12-01"
-        },
-        {
-            id: 3,
-            businessName: "Bating's Fried Rice",
-            contactPerson: "Roberto Bating",
-            email: "berto@batingrice.com",
-            phone: "+63 918 345 6789",
-            address: "789 Rice Ave, Makati",
-            tin: "345-678-901-222",
-            businessType: "individual",
-            monthlyFee: 1500,
-            startDate: "2024-03-10",
-            status: "pending",
-            lastPayment: "2024-11-01"
-        },
-        {
-            id: 4,
-            businessName: "Sticky Printing Shop",
-            contactPerson: "Maria Garcia",
-            email: "maria@stickyprint.com",
-            phone: "+63 919 456 7890",
-            address: "321 Print Blvd, Pasig",
-            tin: "456-789-012-333",
-            businessType: "business",
-            monthlyFee: 2000,
-            startDate: "2024-04-05",
-            status: "active",
-            lastPayment: "2024-12-01"
-        },
-        {
-            id: 5,
-            businessName: "Ashop Sari-Sari Store",
-            contactPerson: "Ana Reyes",
-            email: "ana@ashopstore.com",
-            phone: "+63 920 567 8901",
-            address: "654 Store St, Taguig",
-            tin: "567-890-123-444",
-            businessType: "individual",
-            monthlyFee: 1200,
-            startDate: "2024-05-20",
-            status: "inactive",
-            lastPayment: "2024-10-01"
-        }
-    ];
+function getUid() {
+    const uid = window.authService?.getCurrentUserId?.() || null;
+    if (uid) return uid;
+    const stored = localStorage.getItem("registeredUser");
+    if (!stored) return null;
+    try { return JSON.parse(stored)?.uid || null; } catch { return null; }
+}
+
+async function fetchDashboardData() {
+    const uid = getUid();
+    if (!uid || !window.userDataService) return { clients: [], billing: [] };
+    const [clients, billing] = await Promise.all([
+        window.userDataService.getClients(uid),
+        window.userDataService.getBillingRecords(uid),
+    ]);
+    return { clients, billing };
 }
 
 // Chart.js instances
@@ -338,16 +276,18 @@ function openNotifications() {
 }
 
 function viewClientDetails(clientName) {
-    const clients = getClients();
-    const client = clients.find(c => c.businessName === clientName);
+    const clientList = document.querySelector(".client-list");
+    const client = null;
     if (client) {
         alert(
             `Client: ${client.businessName}\nRevenue: $${client.monthlyFee}\nStatus: ${client.status}\nLast Payment: ${client.lastPayment}`
         );
+    } else if (clientList) {
+        // No-op: detailed view is handled on Clients page
     }
 }
 
-function updateClientsList(filteredData = getClients()) {
+function updateClientsList(filteredData = []) {
     const clientList = document.querySelector(".client-list");
     clientList.innerHTML = "";
 
@@ -374,41 +314,17 @@ function updateClientsList(filteredData = getClients()) {
 }
 
 function filterClients(query) {
-    const clients = getClients();
+    const clients = [];
     const filteredClients = clients.filter(client => client.businessName.toLowerCase().includes(query));
     updateClientsList(filteredClients);
 }
 
 function updateMetrics() {
-    const clients = getClients();
-    const totalClients = clients.filter(c => c.status !== "deleted").length;
-    const totalRevenue = clients.reduce((sum, client) => sum + (client.monthlyFee || 0), 0);
-    const upcomingDues = clients.filter(c => {
-        if (c.status !== 'active') return false;
-        const lastPay = new Date(c.lastPayment);
-        const now = new Date();
-        const daysSince = (now - lastPay) / (1000 * 60 * 60 * 24);
-        return daysSince > 30;
-    }).length;
-
-    document.getElementById("totalClients").textContent = totalClients;
-    document.getElementById("totalRevenue").textContent = `$${totalRevenue.toLocaleString()}`;
-    document.getElementById("upcomingDues").textContent = upcomingDues;
+    // Legacy function retained for compatibility; metrics now come from Firestore.
 }
 
 function updateChartsData() {
-    const clients = getClients();
-    // Update data for mainChart
-    mainChart.data.labels = clients.map(client => client.businessName);
-    mainChart.data.datasets[2].data = clients.map(client => client.monthlyFee);
-    mainChart.update();
-
-    // Update data for pieChart
-    pieChart.data.datasets[0].data = [
-        clients.filter(c => c.status === 'active').length,
-        clients.filter(c => c.status === 'pending').length
-    ];
-    pieChart.update();
+    // Legacy function retained for compatibility; charts now come from Firestore.
 }
 
 // Initialize on DOMContentLoaded
@@ -426,21 +342,67 @@ document.addEventListener("DOMContentLoaded", () => {
         updateProfilePicture(profilePicture);
     } 
 
-    const clients = getClients();
-    initializeCharts(clients);
+    (async () => {
+        try {
+            const { clients, billing } = await fetchDashboardData();
+            updateMetricsFromFirestore(clients, billing);
+            initializeChartsFromFirestore(clients, billing);
+            updateClientsListFromFirestore(clients);
+        } catch (e) {
+            console.error(e);
+        }
+    })();
     initializeNavigation();
     initializeModals();
-    updateClientsList();
-    updateMetrics();
-    updateChartsData();
 });
+
+function updateMetricsFromFirestore(clients, billing) {
+    const totalClientsEl = document.getElementById("totalClients");
+    if (totalClientsEl) totalClientsEl.textContent = String(clients.length);
+
+    const totalRevenue = billing.reduce((sum, b) => sum + (b.status === "paid" ? Number(b.amount || 0) : 0), 0);
+    const revenueEl = document.getElementById("totalRevenue");
+    if (revenueEl) revenueEl.textContent = `₱${totalRevenue.toLocaleString()}`;
+
+    const upcoming = billing.filter(b => ["pending","overdue"].includes(b.status)).length;
+    const upcomingEl = document.getElementById("upcomingDues");
+    if (upcomingEl) upcomingEl.textContent = String(upcoming);
+}
+
+function initializeChartsFromFirestore(clients, billing) {
+    // If no data, don't render noisy charts
+    if (!clients.length) return;
+    initializeCharts(clients);
+}
+
+function updateClientsListFromFirestore(clients) {
+    const list = document.querySelector(".client-list");
+    if (!list) return;
+    if (!clients.length) {
+        list.innerHTML = `<div style="opacity:.9;">No clients yet — add your first client.</div>`;
+        return;
+    }
+    list.innerHTML = clients.slice(0, 5).map(c => `
+      <div class="client-item">
+        <div class="client-avatar"></div>
+        <div>
+          <div style="font-weight:700;">${c.businessName || "Unnamed Client"}</div>
+          <div style="font-size:12px;opacity:.9;">${c.contactPerson || ""}</div>
+        </div>
+        <span class="client-status ${c.status || "active"}">${(c.status || "active")}</span>
+      </div>
+    `).join("");
+}
 
 // Dummy functions for buttons
 function logout() {
-    if (confirm("Are you sure you want to logout?")) {
-        localStorage.removeItem("registeredUser");
-        window.location.href = "login.html";
+    if (typeof bookvaultLogout === "function") {
+        bookvaultLogout();
+        return;
     }
+    // Fallback
+    localStorage.removeItem("registeredUser");
+    window.location.href = "login.html";
 }
 
 function editProfile() {

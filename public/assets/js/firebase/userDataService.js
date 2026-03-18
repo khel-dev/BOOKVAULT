@@ -218,7 +218,7 @@ class UserDataService {
       const docRef = await this.db
         .collection("users")
         .doc(userId)
-        .collection("billing")
+        .collection("billingStatements")
         .add({
           ...billingData,
           createdAt: new Date(),
@@ -245,7 +245,7 @@ class UserDataService {
       const snapshot = await this.db
         .collection("users")
         .doc(userId)
-        .collection("billing")
+        .collection("billingStatements")
         .orderBy("createdAt", "desc")
         .get();
 
@@ -262,6 +262,39 @@ class UserDataService {
         "[UserDataService] Error getting billing records:",
         error.message
       );
+      throw error;
+    }
+  }
+
+  async updateBillingRecord(userId, billingId, updates) {
+    try {
+      await this.db
+        .collection("users")
+        .doc(userId)
+        .collection("billingStatements")
+        .doc(billingId)
+        .update({
+          ...updates,
+          updatedAt: new Date(),
+        });
+      console.log("[UserDataService] Billing record updated:", billingId);
+    } catch (error) {
+      console.error("[UserDataService] Error updating billing record:", error.message);
+      throw error;
+    }
+  }
+
+  async deleteBillingRecord(userId, billingId) {
+    try {
+      await this.db
+        .collection("users")
+        .doc(userId)
+        .collection("billingStatements")
+        .doc(billingId)
+        .delete();
+      console.log("[UserDataService] Billing record deleted:", billingId);
+    } catch (error) {
+      console.error("[UserDataService] Error deleting billing record:", error.message);
       throw error;
     }
   }
@@ -402,6 +435,9 @@ class UserDataService {
     }
   }
 }
+
+// Expose singleton
+window.userDataService = new UserDataService();
 
 // Create global instance
 window.userDataService = new UserDataService();
