@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BookVault - Account Setup</title>
-    <link rel="stylesheet" href="../css/registration_account.css">
+    <link rel="stylesheet" href="../assets/css/registration_account.css">
 </head>
 <body>
     <div class="container">
@@ -57,7 +57,6 @@
                     <div class="form-group">
                         <label for="username" class="form-label">Username</label>
                         <input type="text" id="username" name="username" class="form-input" required>
-                        <div class="input-hint" id="usernameHint">Choose a unique username for your account</div>
                     </div>
 
                     <div class="form-group">
@@ -122,6 +121,13 @@
         </div>
     </div>
 
-    <script src="../js/registration_account.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="../assets/js/firebase/firebaseConfig.js"></script>
+    <script src="../assets/js/firebase/firebaseInit.js"></script>
+    <script src="../assets/js/firebase/authService.js"></script>
+    <script src="../assets/js/firebase/userDataService.js"></script>
+    <script src="../assets/js/registration_account.js"></script>
 </body>
 </html>

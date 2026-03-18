@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookVault Debug - Error Checker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .debug-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+        h1 {
+            color: #2e3192;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background: #f5f5f5;
+            border-left: 4px solid #ddd;
+        }
+        .status-item.success {
+            background: #d4edda;
+            border-left-color: #10b981;
+        }
+        .status-item.error {
+            background: #f8d7da;
+            border-left-color: #ef4444;
+        }
+        .status-item.pending {
+            background: #fff3cd;
+            border-left-color: #f59e0b;
+        }
+        .status-icon {
+            font-size: 24px;
+            margin-right: 15px;
+            min-width: 30px;
+        }
+        .status-text {
+            flex: 1;
+        }
+        .status-label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .status-detail {
+            font-size: 13px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+        .error-log {
+            background: #1e1e1e;
+            color: #0fb981;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 30px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .error-log-title {
+            color: #fff;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .error-line {
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+        .error-line.error {
+            color: #ff6b6b;
+        }
+        .error-line.warn {
+            color: #ffd93d;
+        }
+        .error-line.log {
+            color: #0fb981;
+        }
+        button {
+            background: #00adef;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0088b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>🔍 BookVault Debug Check</h1>
+        
+        <div id="statusContainer"></div>
+        
+        <div class="error-log">
+            <div class="error-log-title">📋 Console Logs:</div>
+            <div id="logContainer"></div>
+        </div>
+
+        <button onclick="testRegistration()">Test Registration Flow</button>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="./assets/js/firebase/firebaseConfig.js"></script>
+
+    <script>
+        const logs = [];
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        // Capture all console outputs
+        console.log = function(...args) {
+            logs.push({ type: 'log', message: args.join(' ') });
+            originalLog.apply(console, args);
+            updateLogDisplay();
+        };
+
+        console.error = function(...args) {
+            logs.push({ type: 'error', message: args.join(' ') });
+            originalError.apply(console, args);
+            updateLogDisplay();
+        };
+
+        console.warn = function(...args) {
+            logs.push({ type: 'warn', message: args.join(' ') });
+            originalWarn.apply(console, args);
+            updateLogDisplay();
+        };
+
+        function updateLogDisplay() {
+            const container = document.getElementById('logContainer');
+            container.innerHTML = logs.map(log => 
+                `<div class="error-line ${log.type}">${log.type.toUpperCase()}: ${log.message}</div>`
+            ).join('');
+            container.parentElement.scrollTop = container.parentElement.scrollHeight;
+        }
+
+        function updateStatus(label, status, detail = '') {
+            const container = document.getElementById('statusContainer');
+            const statusClass = status === 'ok' ? 'success' : status === 'error' ? 'error' : 'pending';
+            const icon = status === 'ok' ? '✅' : status === 'error' ? '❌' : '⏳';
+            
+            let html = container.innerHTML;
+            const regex = new RegExp(`<div class="status-item ${statusClass}">[^]*?<span class="status-label">${label}</span>`, 'i');
+            
+            const newItem = `
+                <div class="status-item ${statusClass}">
+                    <div class="status-icon">${icon}</div>
+                    <div class="status-text">
+                        <div class="status-label">${label}</div>
+                        ${detail ? `<div class="status-detail">${detail}</div>` : ''}
+                    </div>
+                </div>
+            `;
+            
+            if (html.includes(label)) {
+                html = html.replace(regex, newItem);
+            } else {
+                html += newItem;
+            }
+            container.innerHTML = html;
+        }
+
+        // Check Firebase initialization
+        async function checkFirebase() {
+            updateStatus('Firebase SDK', 'pending', 'Loading...');
+            
+            if (!window.firebase) {
+                updateStatus('Firebase SDK', 'error', 'Firebase SDK not found');
+                return false;
+            }
+            updateStatus('Firebase SDK', 'ok', 'Loaded');
+
+            // Check config
+            if (!window.__BOOKVAULT_FIREBASE_CONFIG__) {
+                updateStatus('Firebase Config', 'error', 'Config not found');
+                return false;
+            }
+            updateStatus('Firebase Config', 'ok', window.__BOOKVAULT_FIREBASE_CONFIG__.projectId);
+
+            // Initialize Firebase
+            try {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(window.__BOOKVAULT_FIREBASE_CONFIG__);
+                }
+                updateStatus('Firebase App', 'ok', 'Initialized');
+            } catch (err) {
+                updateStatus('Firebase App', 'error', err.message);
+                return false;
+            }
+
+            // Check Auth
+            try {
+                const auth = firebase.auth();
+                updateStatus('Firebase Auth', 'ok', 'Ready');
+            } catch (err) {
+                updateStatus('Firebase Auth', 'error', err.message);
+                return false;
+            }
+
+            // Check Firestore
+            try {
+                const db = firebase.firestore();
+                updateStatus('Firebase Firestore', 'ok', 'Ready');
+                
+                // Test write permissions
+                const testRef = db.collection('_test').doc('connection');
+                await testRef.set({ test: true, timestamp: new Date() });
+                await testRef.delete();
+                updateStatus('Firestore Write', 'ok', 'Permissions OK');
+            } catch (err) {
+                updateStatus('Firestore Write', 'error', err.message);
+                console.error('Firestore error details:', err);
+            }
+
+            return true;
+        }
+
+        async function testRegistration() {
+            console.log('=== Starting Registration Test ===');
+            const email = `test-${Date.now()}@test.com`;
+            const password = 'Test12345!';
+            
+            try {
+                const auth = firebase.auth();
+                const db = firebase.firestore();
+                
+                console.log('Creating account:', email);
+                const userCred = await auth.createUserWithEmailAndPassword(email, password);
+                console.log('Account created:', userCred.user.uid);
+                
+                console.log('Storing user data in Firestore...');
+                await db.collection('users').doc(userCred.user.uid).set({
+                    uid: userCred.user.uid,
+                    email: email,
+                    username: 'testuser',
+                    createdAt: new Date(),
+                });
+                console.log('User data stored successfully');
+                
+                updateStatus('Registration Test', 'ok', 'Success!');
+                
+                // Clean up
+                await userCred.user.delete();
+                console.log('Test user deleted');
+                
+            } catch (err) {
+                console.error('Registration test failed:', err);
+                updateStatus('Registration Test', 'error', err.message);
+            }
+        }
+
+        // Run checks on load
+        window.addEventListener('load', () => {
+            console.log('🔍 BookVault Debug Started');
+            checkFirebase();
+        });
+    </script>
+</body>
+</html>

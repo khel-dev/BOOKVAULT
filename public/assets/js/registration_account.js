@@ -5,10 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const passwordStrength = document.getElementById("passwordStrength")
   const passwordMatch = document.getElementById("passwordMatch")
   const usernameInput = document.getElementById("username")
-  const usernameHint = document.getElementById("usernameHint")
   const submitButton = document.getElementById("submitButton")
-
-  let usernameTimeout
 
   // Load saved data if exists
   loadSavedData()
@@ -109,22 +106,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Username availability checker
-  function checkUsernameAvailability(username) {
-    const existingUsers = JSON.parse(localStorage.getItem("registeredUsers")) || []
-    const isAvailable = !existingUsers.some((user) => user.username === username)
-
-    if (isAvailable) {
-      usernameHint.textContent = "✓ Username is available"
-      usernameHint.style.color = "#10b981"
-    } else {
-      usernameHint.textContent = "✗ Username is not available"
-      usernameHint.style.color = "#ef4444"
-    }
-
-    return isAvailable
-  }
-
   // Validate form
   function validateForm() {
     const requiredInputs = form.querySelectorAll("input[required], select[required]")
@@ -154,17 +135,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return false
     }
 
-    if (!checkUsernameAvailability(usernameInput.value)) {
-      usernameInput.focus()
-      showNotification("Username is not available. Please choose a different one.", "error")
-      return false
-    }
-
     return true
   }
 
-  // Save data to localStorage
-  function saveData() {
+  // Save form step to localStorage (multi-step registration)
+  function saveLocalStepData() {
     const formData = new FormData(form)
     const data = {}
 
@@ -177,22 +152,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const mergedData = { ...existingData, ...data }
 
     localStorage.setItem("registrationData", JSON.stringify(mergedData))
-
-    // Save to registered users list with profile picture and gender
-    const existingUsers = JSON.parse(localStorage.getItem("registeredUsers")) || []
-    existingUsers.push({
-      username: data.username,
-      password: data.password,
-      email: existingData.email,
-      fullName: `${existingData.firstName} ${existingData.lastName}`,
-      businessName: existingData.businessName,
-      gender: existingData.gender,
-      profilePicture: existingData.profilePicture,
-    })
-    localStorage.setItem("registeredUsers", JSON.stringify(existingUsers))
-
-    // Save current user for immediate login with profile picture
-    localStorage.setItem("registeredUser", JSON.stringify(mergedData))
   }
 
   // Event listeners
@@ -203,41 +162,110 @@ document.addEventListener("DOMContentLoaded", () => {
 
   confirmPasswordInput.addEventListener("input", checkPasswordMatch)
 
-  usernameInput.addEventListener("input", (e) => {
-    clearTimeout(usernameTimeout)
-    const username = e.target.value.trim()
-
-    if (username.length >= 3) {
-      usernameTimeout = setTimeout(() => {
-        checkUsernameAvailability(username)
-      }, 500)
-    } else {
-      usernameHint.textContent = "Choose a unique username for your account"
-      usernameHint.style.color = "#6b7280"
-    }
-  })
-
   // Form submission
   form.addEventListener("submit", (e) => {
     e.preventDefault()
 
-    if (!validateForm()) {
-      return
-    }
+    if (!validateForm()) return
 
     submitButton.textContent = "Creating Account..."
     submitButton.disabled = true
 
-    setTimeout(() => {
-      saveData()
-      showNotification("Account created successfully! Redirecting to login...", "success")
+    ;(async () => {
+      try {
+        // Wait for authService to be ready (max 3 seconds)
+        let attempts = 0
+        while (!window.authService && attempts < 30) {
+          await new Promise(resolve => setTimeout(resolve, 100))
+          attempts++
+        }
 
-      setTimeout(() => {
-        // Clear registration data after successful registration
-        localStorage.removeItem("registrationData")
-        window.location.href = "login.html"
-      }, 2000)
-    }, 2000)
+        if (!window.authService) {
+          showNotification("Firebase services not available. Please refresh and try again.", "error")
+          submitButton.textContent = "Create Account"
+          submitButton.disabled = false
+          return
+        }
+
+        const existingData = JSON.parse(localStorage.getItem("registrationData")) || {}
+        const username = usernameInput.value.trim()
+        const password = passwordInput.value
+        const email = (existingData.email || "").trim()
+
+        if (!email || !email.includes("@")) {
+          showNotification("Please go back and enter a valid email address.", "error")
+          submitButton.textContent = "Create Account"
+          submitButton.disabled = false
+          return
+        }
+
+        if (!username) {
+          usernameInput.focus()
+          showNotification("Please enter a username.", "error")
+          submitButton.textContent = "Create Account"
+          submitButton.disabled = false
+          return
+        }
+
+        saveLocalStepData()
+
+        // Use authService to register - just create account with username
+        const result = await window.authService.register(email, password, {
+          username,
+          firstName: existingData.firstName || "",
+          lastName: existingData.lastName || "",
+          fullName: `${existingData.firstName || ""} ${existingData.lastName || ""}`.trim(),
+          gender: existingData.gender || "",
+          businessName: existingData.businessName || "",
+          businessType: existingData.businessType || "",
+          experience: existingData.experience || "",
+          clientCount: existingData.clientCount || "",
+          address: existingData.address || "",
+          phone: existingData.phone || "",
+          certification: existingData.certification || "",
+        })
+
+        const user = result.user
+
+        const profilePicture =
+          existingData.gender === "male"
+            ? "https://www.clipartmax.com/png/small/319-3191274_male-avatar-admin-profile.png"
+            : existingData.gender === "female"
+              ? "https://cdn1.iconfinder.com/data/icons/avatars-1-5/136/87-512.png"
+              : "https://www.clipartmax.com/png/small/186-1864115_user-icon-man-profile-icon.png"
+
+        localStorage.setItem(
+          "registeredUser",
+          JSON.stringify({
+            uid: user.uid,
+            email: email,
+            fullName: `${existingData.firstName || ""} ${existingData.lastName || ""}`.trim(),
+            businessName: existingData.businessName || "",
+            gender: existingData.gender || "",
+            profilePicture,
+          }),
+        )
+
+        showNotification("Account created successfully! Redirecting to login...", "success")
+
+        setTimeout(() => {
+          localStorage.removeItem("registrationData")
+          window.location.href = "login.html"
+        }, 1200)
+      } catch (err) {
+        console.error("Registration error:", err)
+        console.error("Full error details:", JSON.stringify(err, null, 2))
+        const msg =
+          err?.code === "auth/email-already-in-use"
+            ? "That email is already registered. Please login instead."
+            : err?.message || `Registration failed: ${err?.toString() || "Unknown error"}`
+        console.error(`[FROM AUTHSERVICE] ${msg}`)
+        showNotification(msg, "error")
+      } finally {
+        submitButton.textContent = "Create Account"
+        submitButton.disabled = false
+      }
+    })()
   })
 
   // Add CSS for notifications

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BookVault - Login</title>
-  <link rel="stylesheet" href="../css/login.css">
+  <link rel="stylesheet" href="../assets/css/login.css">
 </head>
 <body>
   <div class="container">
@@ -40,8 +40,8 @@
       <!-- Login Form -->
       <form class="login-form" id="loginForm">
         <div class="form-group">
-          <label for="username" class="form-label">Username</label>
-          <input type="text" id="username" name="username" class="form-input" required>
+          <label for="username" class="form-label">Email</label>
+          <input type="email" id="username" name="username" class="form-input" required>
         </div>
 
         <div class="form-group">
@@ -70,6 +70,13 @@
     </div>
   </div>
 
-  <script src="../js/login.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="../assets/js/firebase/firebaseConfig.js"></script>
+  <script src="../assets/js/firebase/firebaseInit.js"></script>
+  <script src="../assets/js/firebase/authService.js"></script>
+  <script src="../assets/js/firebase/userDataService.js"></script>
+  <script src="../assets/js/login.js"></script>
 </body>
 </html>

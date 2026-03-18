@@ -10,6 +10,19 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.href = "registration_personal.html"
   })
 
+  // If already logged in, go straight to dashboard
+  let authCheckInterval = setInterval(() => {
+    if (window.firebaseInitialized && window.authService && window.authService.isLoggedIn()) {
+      clearInterval(authCheckInterval)
+      if (window.location.pathname.endsWith("/login.html")) {
+        window.location.href = "dashboard.html"
+      }
+    }
+  }, 100)
+
+  // Stop checking after 5 seconds
+  setTimeout(() => clearInterval(authCheckInterval), 5000)
+
   // Form validation and submission
   form.addEventListener("submit", (e) => {
     e.preventDefault()
@@ -20,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Validate inputs
     let isValid = true
     if (usernameInput.value.trim() === "") {
-      showFieldError(usernameInput, "Username is required")
+      showFieldError(usernameInput, "Email is required")
       isValid = false
     }
     if (passwordInput.value.trim() === "") {
@@ -37,34 +50,73 @@ document.addEventListener("DOMContentLoaded", () => {
     loginBtn.textContent = "Signing in..."
     loginBtn.disabled = true
 
-    // Simulate login process with local storage
-    setTimeout(() => {
-      const storedUsers = JSON.parse(localStorage.getItem("registeredUsers")) || []
+    const email = usernameInput.value.trim()
+    const password = passwordInput.value
 
-      const foundUser = storedUsers.find(
-        (user) => user.username === usernameInput.value && user.password === passwordInput.value
-      )
+    ;(async () => {
+      try {
+        // Wait for authService to be ready (max 3 seconds)
+        let attempts = 0
+        while (!window.authService && attempts < 30) {
+          await new Promise(resolve => setTimeout(resolve, 100))
+          attempts++
+        }
 
-      if (foundUser) {
-        // Set profile picture based on gender
-        const profilePicture = foundUser.gender === "male"
-          ? "https://www.clipartmax.com/png/small/319-3191274_male-avatar-admin-profile.png"
-          : "https://cdn1.iconfinder.com/data/icons/avatars-1-5/136/87-512.png"
-        foundUser.profilePicture = profilePicture // Add profile picture to user data
+        if (!window.authService) {
+          showNotification("Firebase services not available. Please refresh and try again.", "error")
+          loginBtn.textContent = originalText
+          loginBtn.disabled = false
+          return
+        }
 
-        // Save the found user with profile picture to localStorage
-        localStorage.setItem("registeredUser", JSON.stringify(foundUser))
+        // Use authService to login
+        const result = await window.authService.login(email, password)
+        const user = result.user
+        
+        // Get user profile from Firestore - wait for userDataService to be ready
+        let profile = null;
+        if (window.firebaseInitialized && window.userDataService?.db) {
+          try {
+            const profileDoc = await window.userDataService.db?.collection("users")?.doc(user.uid)?.get()
+            profile = profileDoc?.data()
+          } catch (err) {
+            console.warn("Could not fetch profile:", err)
+          }
+        }
+
+        const profilePicture =
+          profile?.gender === "male"
+            ? "https://www.clipartmax.com/png/small/319-3191274_male-avatar-admin-profile.png"
+            : profile?.gender === "female"
+              ? "https://cdn1.iconfinder.com/data/icons/avatars-1-5/136/87-512.png"
+              : "https://www.clipartmax.com/png/small/186-1864115_user-icon-man-profile-icon.png"
+
+        localStorage.setItem(
+          "registeredUser",
+          JSON.stringify({
+            uid: user?.uid,
+            email: profile?.email || email,
+            firstName: profile?.firstName || "",
+            lastName: profile?.lastName || "",
+            businessName: profile?.businessName || "",
+            gender: profile?.gender || "",
+            profilePicture,
+          }),
+        )
 
         showNotification("✅ Login successful! Welcome to BookVault", "success")
         setTimeout(() => {
           window.location.href = "dashboard.html"
-        }, 1500)
-      } else {
-        showNotification("❌ Invalid username or password", "error")
+        }, 600)
+      } catch (err) {
+        console.error("Login error:", err)
+        console.error("Full error details:", JSON.stringify(err, null, 2))
+        showNotification(`❌ ${err.message || "Invalid email or password"}`, "error")
+      } finally {
         loginBtn.textContent = originalText
         loginBtn.disabled = false
       }
-    }, 1500)
+    })()
   })
 
   // Helper functions
