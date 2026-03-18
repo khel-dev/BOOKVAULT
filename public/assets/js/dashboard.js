@@ -39,7 +39,14 @@ function getUid() {
 
 async function fetchDashboardData() {
     const uid = getUid();
-    if (!uid || !window.userDataService) return { clients: [], billing: [] };
+    if (!uid) return { clients: [], billing: [] };
+    // Wait for service
+    let attempts = 0;
+    while (!window.userDataService && attempts < 100) {
+        await new Promise(r => setTimeout(r, 100));
+        attempts++;
+    }
+    if (!window.userDataService) console.error('userDataService not ready');
     const [clients, billing] = await Promise.all([
         window.userDataService.getClients(uid),
         window.userDataService.getBillingRecords(uid),
@@ -342,14 +349,20 @@ document.addEventListener("DOMContentLoaded", () => {
         updateProfilePicture(profilePicture);
     } 
 
-    (async () => {
-        try {
-            const { clients, billing } = await fetchDashboardData();
-            updateMetricsFromFirestore(clients, billing);
-            initializeChartsFromFirestore(clients, billing);
-            updateClientsListFromFirestore(clients);
-        } catch (e) {
-            console.error(e);
+(async () => {
+        let attempts = 0;
+        while (attempts < 5) {
+            try {
+                const { clients, billing } = await fetchDashboardData();
+                updateMetricsFromFirestore(clients, billing);
+                initializeChartsFromFirestore(clients, billing);
+                updateClientsListFromFirestore(clients);
+                break;
+            } catch (e) {
+                console.error('Dashboard load attempt', attempts + 1, e);
+                await new Promise(r => setTimeout(r, 2000));
+                attempts++;
+            }
         }
     })();
     initializeNavigation();
@@ -360,7 +373,10 @@ function updateMetricsFromFirestore(clients, billing) {
     const totalClientsEl = document.getElementById("totalClients");
     if (totalClientsEl) totalClientsEl.textContent = String(clients.length);
 
-    const totalRevenue = billing.reduce((sum, b) => sum + (b.status === "paid" ? Number(b.amount || 0) : 0), 0);
+    const activeClients = clients.filter(c => c.status === 'active' || !c.status).length;
+    const subscriptionRevenue = activeClients * 299;
+    const paidBillingRevenue = billing.reduce((sum, b) => sum + (b.status === "paid" ? Number(b.amount || 0) : 0), 0);
+    const totalRevenue = subscriptionRevenue + paidBillingRevenue;
     const revenueEl = document.getElementById("totalRevenue");
     if (revenueEl) revenueEl.textContent = `₱${totalRevenue.toLocaleString()}`;
 

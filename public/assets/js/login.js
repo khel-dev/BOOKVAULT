@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const passwordInput = document.getElementById("password")
   const createAccountLink = document.querySelector(".create-account-link")
 
+  let allowRedirectToDashboard = false
+
   // Pre-fill email from registration if provided
   const params = new URLSearchParams(window.location.search)
   const emailParam = params.get("email")
@@ -12,11 +14,18 @@ document.addEventListener("DOMContentLoaded", () => {
     passwordInput.focus()
     // Clean URL
     window.history.replaceState({}, document.title, window.location.pathname)
+    // User came from registration, don't auto-redirect
+    allowRedirectToDashboard = false
+  } else {
+    // User came directly to login, allow redirect if already logged in
+    if (window.authService?.isLoggedIn?.()) {
+      window.location.href = "dashboard.html"
+    }
   }
 
-  // Reliable redirect after Firebase auth state becomes "logged in"
+  // Only redirect to dashboard after user submits login form
   window.addEventListener("userLoggedIn", () => {
-    if (window.location.pathname.endsWith("/login.html")) {
+    if (allowRedirectToDashboard && window.location.pathname.endsWith("/login.html")) {
       window.location.href = "dashboard.html"
     }
   })
@@ -26,9 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault()
     window.location.href = "registration_personal.html"
   })
-
-  // Intentionally do NOT auto-redirect if already logged in.
-  // This keeps the login screen predictable (especially right after registration).
 
   // Form validation and submission
   form.addEventListener("submit", (e) => {
@@ -113,7 +119,9 @@ document.addEventListener("DOMContentLoaded", () => {
         )
 
         showNotification("✅ Login successful! Welcome to BookVault", "success")
-        // Redirect is handled by auth state event as well; keep this as a fallback
+        // Enable dashboard redirect now that user successfully logged in
+        allowRedirectToDashboard = true
+        // Redirect after a short delay
         setTimeout(() => {
           window.location.href = "dashboard.html"
         }, 400)

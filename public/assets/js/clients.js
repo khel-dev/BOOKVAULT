@@ -60,9 +60,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function loadClientsFromFirestore() {
     const uid = getUid();
-    if (!uid) return;
+    if (!uid) {
+        lastError = "Please login first.";
+        isLoading = false;
+        renderClients();
+        return;
+    }
+    // Wait for userDataService like authService
+    let attempts = 0;
+    while (!window.userDataService && attempts < 100) {
+        await new Promise(r => setTimeout(r, 100));
+        attempts++;
+    }
     if (!window.userDataService) {
-        lastError = "Data service not ready. Please refresh.";
+        lastError = "Data service failed to load. Refresh page.";
         isLoading = false;
         renderClients();
         return;
@@ -74,7 +85,7 @@ async function loadClientsFromFirestore() {
         filteredClients = [...clients];
     } catch (e) {
         console.error(e);
-        lastError = "Failed to load clients from database.";
+        lastError = "Failed to load clients from database. Check console.";
     } finally {
         setLoading(false);
         updateClientStats();
