@@ -386,7 +386,7 @@ function updateMetricsFromFirestore(clients, billing) {
 }
 
 function initializeChartsFromFirestore(clients, billing) {
-    // If no data, don't render noisy charts
+    // pag wala data sa clients, wag na i-initialize charts para di mag error
     if (!clients.length) return;
     initializeCharts(clients);
 }
