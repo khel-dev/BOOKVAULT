@@ -261,10 +261,9 @@ function setNewDefaultDates() {
 }
 
 function openNewCreateBillingStatementModal(clientId = null) {
-    console.log(`Opening New Create Billing Statement Modal${clientId ? ` for client ${clientId}` : ""}`);
     const modal = document.getElementById("newCreateBillingStatementModal");
     if (modal) {
-        modal.style.display = "flex";
+        document.body.appendChild(modal);
         modal.classList.add("active");
         generateNewBillingStatementNumber();
         setNewDefaultDates();
@@ -300,9 +299,6 @@ function openNewCreateBillingStatementModal(clientId = null) {
                 }
             }
         }
-    } else {
-        console.error("New Create Billing Statement Modal not found");
-        showNotification("Error: New Create Billing Statement modal not found", "error");
     }
 }
 

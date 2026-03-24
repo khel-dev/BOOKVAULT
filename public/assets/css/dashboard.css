@@ -426,7 +426,7 @@ body {
   flex-shrink: 0;
 }
 
-/* Modal Styles */
+/* Modal Styles 
 .modal {
   display: none;
   position: fixed;
@@ -438,6 +438,7 @@ body {
   background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
 }
+*/
 
 .modal-content {
   background-color: white;
