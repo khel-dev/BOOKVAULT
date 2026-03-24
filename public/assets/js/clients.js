@@ -55,21 +55,30 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeModals();
 
     // Load real clients from Firestore
-    loadClientsFromFirestore();
+    setTimeout(() => loadClientsFromFirestore(), 500);
 });
 
 async function loadClientsFromFirestore() {
     const uid = getUid();
     if (!uid) {
-        lastError = "Please login first.";
-        isLoading = false;
-        renderClients();
-        return;
+        // Wait for auth to be ready
+        let authAttempts = 0;
+        while (!getUid() && authAttempts < 50) {
+            await new Promise(r => setTimeout(r, 200));
+            authAttempts++;
+        }
+        if (!getUid()) {
+            lastError = "Please login first.";
+            isLoading = false;
+            renderClients();
+            return;
+        }
     }
-    // Wait for userDataService like authService
+
+    // Wait for userDataService
     let attempts = 0;
-    while (!window.userDataService && attempts < 100) {
-        await new Promise(r => setTimeout(r, 100));
+    while (!window.userDataService && attempts < 50) {
+        await new Promise(r => setTimeout(r, 200));
         attempts++;
     }
     if (!window.userDataService) {
@@ -78,16 +87,20 @@ async function loadClientsFromFirestore() {
         renderClients();
         return;
     }
+
     try {
-        setLoading(true);
+        isLoading = true;
         lastError = null;
+        renderClients();
+        const uid = getUid();
         clients = await window.userDataService.getClients(uid);
         filteredClients = [...clients];
     } catch (e) {
         console.error(e);
         lastError = "Failed to load clients from database. Check console.";
     } finally {
-        setLoading(false);
+        isLoading = false;
+        renderClients();
         updateClientStats();
     }
 }
