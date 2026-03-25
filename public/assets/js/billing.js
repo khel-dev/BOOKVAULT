@@ -55,26 +55,33 @@ document.addEventListener("DOMContentLoaded", () => {
         updateProfileName(userData.username);
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const clientId = urlParams.get('clientId');
-    if (clientId) {
-        openNewCreateBillingStatementModal(clientId);
-        const clientSelect = document.getElementById("newClientSelect");
-        if (clientSelect) clientSelect.value = clientId;
-    }
-
     renderBillingStatements();
-    (async () => {
-        try { await loadClients(); } catch {}
-        populateNewClientSelect();
-        populateBulkClients();
-    })();
     setupEventListeners();
     generateNewBillingStatementNumber();
     setNewDefaultDates();
     updateBillingStats();
-    populateReminders();
-    loadBillingStatements();
+
+    // Wait for both AuthService and UserDataService to be ready
+    const waitForServices = setInterval(async () => {
+        const uid = getUid();
+        if (!uid || !window.userDataService || !window.authService) return;
+        
+        clearInterval(waitForServices); // stop checking
+        console.log("Services ready, loading data...");
+
+        try { await loadClients(); } catch (e) { console.error(e); }
+        populateNewClientSelect();
+        populateBulkClients();
+        await loadBillingStatements();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const clientId = urlParams.get('clientId');
+        if (clientId) {
+            openNewCreateBillingStatementModal(clientId);
+            const clientSelect = document.getElementById("newClientSelect");
+            if (clientSelect) clientSelect.value = clientId;
+        }
+    }, 200); // check every 200ms
 });
 
 function updateProfilePicture(profilePicture) {
@@ -398,15 +405,14 @@ function calculateNewTotal() {
 }
 
 function createNewBillingStatement() {
-    console.log("Creating new billing statement");
     const clientSelect = document.getElementById("newClientSelect");
-    if (!clientSelect) {
-        console.error("New Client select element not found");
-        showNotification("Error: New Client select element not found", "error");
+    if (!clientSelect || !clientSelect.value) {
+        showNotification("Please select a client", "error");
         return;
     }
-    const clientId = Number.parseInt(clientSelect.value);
-    const client = (cachedClients || []).find((c) => c.id === String(clientId)) || (cachedClients || []).find(c => c.id === clientId);
+
+    const clientId = clientSelect.value; // ← string lang, huwag parseInt
+    const client = (cachedClients || []).find(c => c.id === clientId);
 
     if (!client) {
         showNotification("Please select a client", "error");
@@ -419,23 +425,21 @@ function createNewBillingStatement() {
 
     for (let i = 0; i < serviceDescriptions.length; i++) {
         const description = serviceDescriptions[i].value.trim();
-        const amount = Number.parseFloat(serviceAmounts[i].value) || 0;
-
+        const amount = parseFloat(serviceAmounts[i].value) || 0;
         if (description && amount > 0) {
             services.push({ description, amount });
         }
     }
 
     if (services.length === 0) {
-        showNotification("Please add at least one valid service", "error");
+        showNotification("Please add at least one valid service with amount", "error");
         return;
     }
 
-    const subtotal = services.reduce((sum, service) => sum + service.amount, 0);
+    const subtotal = services.reduce((sum, s) => sum + s.amount, 0);
     const totalAmount = Math.round(subtotal * 1.12 * 100) / 100;
 
     const newBillingStatement = {
-        id: document.getElementById("newBillingStatementNumber")?.value,
         clientId: clientId,
         clientName: client.businessName,
         amount: totalAmount,
@@ -443,7 +447,7 @@ function createNewBillingStatement() {
         billingPeriodStart: document.getElementById("newBillingPeriodStart")?.value,
         billingPeriodEnd: document.getElementById("newBillingPeriodEnd")?.value,
         services: services,
-        notes: document.getElementById("newBillingNotes")?.value,
+        notes: document.getElementById("newBillingNotes")?.value || "",
     };
 
     const uid = getUid();
@@ -454,9 +458,9 @@ function createNewBillingStatement() {
 
     (async () => {
         try {
-            await window.userDataService.addBillingRecord(uid, newBillingStatement);
+            const docId = await window.userDataService.addBillingRecord(uid, newBillingStatement);
             closeNewCreateBillingStatementModal();
-            showNotification(`Billing Statement created for ${client.businessName}`, "success");
+            showNotification(`Billing Statement created for ${client.businessName}!`, "success");
             await loadBillingStatements();
         } catch (e) {
             console.error(e);
