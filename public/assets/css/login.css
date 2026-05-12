@@ -138,6 +138,9 @@ body {
 .form-options {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
   margin: 8px 0;
 }
 
@@ -148,6 +151,17 @@ body {
   font-size: 0.9rem;
   color: #6b7280;
   gap: 8px;
+}
+
+.forgot-password-link {
+  font-size: 14px;
+  color: #00adef;
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.forgot-password-link:hover {
+  text-decoration: underline;
 }
 
 .checkbox-container input[type="checkbox"] {

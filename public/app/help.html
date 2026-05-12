@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BookKeeping - Help & Support</title>
+    <title>BookKeeper - Help & Support</title>
     <link rel="stylesheet" href="../assets/css/styles.css">
     <link rel="stylesheet" href="../assets/css/dashboard.css">
     <link rel="stylesheet" href="../assets/css/help.css">
@@ -19,7 +19,7 @@
             <div class="logo-section">
                 <div class="logo">
                     <img src="../assets/img/White Logo.png" alt="BookVault Logo" width="50" height="40" style="object-fit: contain;"/>
-                    <span>BookKeeping</span>
+                    <span>BookKeeper</span>
                 </div>
                 <div class="menu-label">menu</div>
             </div>
@@ -71,12 +71,13 @@
                     <input type="text" placeholder="Search help articles..." onkeyup="searchHelp(this.value)">
                 </div>
                 <div class="header-actions">
-                    <div class="notification-icon">
+                    <button class="notification-icon" onclick="goToNotifications()" type="button" aria-label="Notifications">
                         <i class="fas fa-bell"></i>
-                    </div>
-                    <div class="user-avatar" onclick="openProfileModal()">
+                        <span class="notification-badge" id="notificationBadge" style="display:none;">0</span>
+                    </button>
+                    <button class="user-avatar" onclick="openProfileModal()" type="button" aria-label="Account menu">
                         <img id="userAvatarHeader" src="https://www.clipartmax.com/png/small/186-1864115_user-icon-man-profile-icon.png" alt="User">
-                    </div>
+                    </button>
                 </div>
             </div>
 

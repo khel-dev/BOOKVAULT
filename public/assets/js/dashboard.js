@@ -37,6 +37,9 @@ function getUid() {
     try { return JSON.parse(stored)?.uid || null; } catch { return null; }
 }
 
+/** Last loaded clients for dashboard search (avoids empty filter bug). */
+let dashboardClientsCache = [];
+
 async function fetchDashboardData() {
     const uid = getUid();
     if (!uid) return { clients: [], billing: [] };
@@ -51,6 +54,7 @@ async function fetchDashboardData() {
         window.userDataService.getClients(uid),
         window.userDataService.getBillingRecords(uid),
     ]);
+    dashboardClientsCache = Array.isArray(clients) ? clients : [];
     return { clients, billing };
 }
 
@@ -251,10 +255,12 @@ function initializeNavigation() {
 
     // Search functionality
     const searchInput = document.querySelector(".search-container input");
-    searchInput.addEventListener("input", function () {
-        const query = this.value.toLowerCase();
-        filterClients(query);
-    });
+    if (searchInput) {
+        searchInput.addEventListener("input", function () {
+            const query = this.value.toLowerCase();
+            filterClients(query);
+        });
+    }
 }
 
 function initializeModals() {
@@ -271,11 +277,17 @@ function goToClients() {
 }
 
 function openProfileModal() {
-    document.getElementById("profileModal").style.display = "flex";
+    const modal = document.getElementById("profileModal");
+    if (!modal) return;
+    if (modal.parentElement !== document.body) {
+        document.body.appendChild(modal);
+    }
+    modal.style.display = "flex";
 }
 
 function closeProfileModal() {
-    document.getElementById("profileModal").style.display = "none";
+    const modal = document.getElementById("profileModal");
+    if (modal) modal.style.display = "none";
 }
 
 function openNotifications() {
@@ -296,6 +308,7 @@ function viewClientDetails(clientName) {
 
 function updateClientsList(filteredData = []) {
     const clientList = document.querySelector(".client-list");
+    if (!clientList) return;
     clientList.innerHTML = "";
 
     const clientNames = filteredData.map(client => client.businessName);
@@ -308,7 +321,13 @@ function updateClientsList(filteredData = []) {
         const client = filteredData.find(c => c.businessName === clientName);
         const clientItem = document.createElement("div");
         clientItem.className = "client-item";
-        clientItem.onclick = () => viewClientDetails(clientName);
+        clientItem.onclick = () => {
+            if (client && client.id) {
+                window.location.href = `client-detail.html?clientId=${client.id}`;
+            } else {
+                viewClientDetails(clientName);
+            }
+        };
 
         clientItem.innerHTML = `
             <div class="client-avatar"></div>
@@ -321,8 +340,16 @@ function updateClientsList(filteredData = []) {
 }
 
 function filterClients(query) {
-    const clients = [];
-    const filteredClients = clients.filter(client => client.businessName.toLowerCase().includes(query));
+    const list = dashboardClientsCache || [];
+    const q = (query || "").toLowerCase();
+    const filteredClients = !q
+        ? list
+        : list.filter(
+              (client) =>
+                  (client.businessName || "").toLowerCase().includes(q) ||
+                  (client.contactPerson || "").toLowerCase().includes(q) ||
+                  (client.email || "").toLowerCase().includes(q),
+          );
     updateClientsList(filteredClients);
 }
 
@@ -357,6 +384,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 updateMetricsFromFirestore(clients, billing);
                 initializeChartsFromFirestore(clients, billing);
                 updateClientsListFromFirestore(clients);
+                await updateNotificationBadge();
                 break;
             } catch (e) {
                 console.error('Dashboard load attempt', attempts + 1, e);
@@ -367,6 +395,23 @@ document.addEventListener("DOMContentLoaded", () => {
     })();
     initializeNavigation();
     initializeModals();
+});
+
+async function updateNotificationBadge() {
+    const uid = getUid();
+    const badge = document.getElementById("notificationBadge");
+    if (!badge || !uid || !window.userDataService) return;
+    try {
+        const n = await window.userDataService.getUnreadNotificationCount(uid);
+        badge.textContent = n > 99 ? "99+" : String(n);
+        badge.style.display = n > 0 ? "flex" : "none";
+    } catch (e) {
+        console.warn(e);
+    }
+}
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeProfileModal();
 });
 
 function updateMetricsFromFirestore(clients, billing) {
@@ -399,7 +444,7 @@ function updateClientsListFromFirestore(clients) {
         return;
     }
     list.innerHTML = clients.slice(0, 5).map(c => `
-      <div class="client-item">
+      <div class="client-item" role="button" tabindex="0" style="cursor:pointer;" onclick="window.location.href='client-detail.html?clientId=${encodeURIComponent(c.id)}'">
         <div class="client-avatar"></div>
         <div>
           <div style="font-weight:700;">${c.businessName || "Unnamed Client"}</div>
@@ -422,9 +467,9 @@ function logout() {
 }
 
 function editProfile() {
-    alert("Redirecting to profile edit page...");
+    window.location.href = "settings.html";
 }
 
 function changePassword() {
-    alert("Redirecting to change password page...");
+    window.location.href = "settings.html";
 }

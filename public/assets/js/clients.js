@@ -45,8 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
         addClientBtn.addEventListener("click", () => openAddClientModal(false));
         console.log("Add New Client button event listener attached");
     } else {
-        console.error("Add New Client button not found");
-        alert("Error: Add New Client button not found. Please check the HTML.");
+        console.warn("Add New Client button not found");
     }
 
     renderClients();
@@ -56,6 +55,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Load real clients from Firestore
     setTimeout(() => loadClientsFromFirestore(), 500);
+
+    const params = new URLSearchParams(window.location.search);
+    const editClientId = params.get("editClientId");
+    if (editClientId) {
+        setTimeout(() => editClient(editClientId), 900);
+    }
 });
 
 async function loadClientsFromFirestore() {
@@ -102,10 +107,23 @@ async function loadClientsFromFirestore() {
         isLoading = false;
         renderClients();
         updateClientStats();
+        updateNotificationBadge();
     }
 }
 
-// User Profile Functions
+async function updateNotificationBadge() {
+    const uid = getUid();
+    const badge = document.getElementById("notificationBadge");
+    if (!badge || !uid || !window.userDataService) return;
+    try {
+        const n = await window.userDataService.getUnreadNotificationCount(uid);
+        badge.textContent = n > 99 ? "99+" : String(n);
+        badge.style.display = n > 0 ? "inline-flex" : "none";
+    } catch (e) {
+        console.warn(e);
+    }
+}
+
 function updateProfilePicture(profilePicture) {
     const headerAvatar = document.getElementById("userAvatarHeader");
     const profileAvatar = document.getElementById("userAvatarProfile");
@@ -124,11 +142,11 @@ function updateProfileName(username) {
 }
 
 function editProfile() {
-    alert("Edit profile functionality is coming soon! For now, you can update your details in settings.");
+    window.location.href = "settings.html";
 }
 
 function changePassword() {
-    alert("Change password functionality is coming soon! Contact support if needed.");
+    window.location.href = "settings.html";
 }
 
 function goToNotifications() {
@@ -150,6 +168,11 @@ function initializeModals() {
         }
     });
     console.log("Modal click listeners initialized");
+    document.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        closeAddClientModal();
+        closeProfileModal();
+    });
 }
 
 function openAddClientModal(isEdit = false) {
@@ -450,24 +473,7 @@ function saveOrUpdateClient() {
 }
 
 function viewClient(clientId) {
-    const client = clients.find((c) => c.id === clientId);
-    if (client) {
-        alert(`
-            Client Details
-            -----------------------
-            Business: ${client.businessName}
-            Contact Person: ${client.contactPerson}
-            Email: ${client.email}
-            Phone: ${client.phone}
-            Address: ${client.address || "N/A"}
-            TIN: ${client.tin || "N/A"}
-            Business Type: ${client.businessType}
-            Monthly Fee: ₱${Number(client.monthlyFee || 0).toLocaleString()}
-            Start Date: ${client.startDate}
-            Status: ${(client.status || "active").toUpperCase()}
-            Last Payment: ${client.lastPayment}
-        `);
-    }
+    window.location.href = `client-detail.html?clientId=${encodeURIComponent(clientId)}`;
 }
 
 function editClient(clientId) {
@@ -493,27 +499,7 @@ function editClient(clientId) {
 }
 
 function generateInvoice(clientId) {
-    const client = clients.find(c => c.id === clientId);
-    if (client) {
-        const dueDate = new Date();
-        dueDate.setDate(dueDate.getDate() + 30);
-        const invoice = `
-Invoice for ${client.businessName}
-------------------------
-Contact: ${client.contactPerson}
-Email: ${client.email}
-Phone: ${client.phone}
-Address: ${client.address || "N/A"}
-
-Monthly Fee: ₱${client.monthlyFee.toLocaleString()}
-Invoice Date: ${new Date().toLocaleDateString()}
-Due Date: ${dueDate.toLocaleDateString()}
-
-Please remit payment to BookVault Bookkeeping Services.
-        `;
-        alert(invoice);
-        alert(`Invoice generated for ${client.businessName}`);
-    }
+    window.location.href = `billing.html?clientId=${encodeURIComponent(clientId)}`;
 }
 
 function deleteClient(clientId) {

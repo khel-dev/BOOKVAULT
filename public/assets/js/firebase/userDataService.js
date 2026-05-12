@@ -266,6 +266,12 @@ class UserDataService {
     }
   }
 
+  /** Billing statements for one client (no composite index required). */
+  async getBillingRecordsByClient(userId, clientId) {
+    const all = await this.getBillingRecords(userId);
+    return all.filter((r) => String(r.clientId) === String(clientId));
+  }
+
   async updateBillingRecord(userId, billingId, updates) {
     try {
       await this.db
@@ -383,6 +389,70 @@ class UserDataService {
     }
   }
 
+  async getUnreadNotificationCount(userId) {
+    try {
+      const snapshot = await this.db
+        .collection("users")
+        .doc(userId)
+        .collection("notifications")
+        .where("read", "==", false)
+        .get();
+      return snapshot.size || 0;
+    } catch (error) {
+      console.error(
+        "[UserDataService] Error counting unread notifications:",
+        error.message
+      );
+      return 0;
+    }
+  }
+
+  async markAllNotificationsRead(userId) {
+    try {
+      const snapshot = await this.db
+        .collection("users")
+        .doc(userId)
+        .collection("notifications")
+        .where("read", "==", false)
+        .get();
+      if (snapshot.empty) return;
+      const batch = this.db.batch();
+      snapshot.forEach((doc) => batch.update(doc.ref, { read: true }));
+      await batch.commit();
+    } catch (error) {
+      console.error("[UserDataService] markAllNotificationsRead:", error.message);
+      throw error;
+    }
+  }
+
+  async deleteNotification(userId, notificationId) {
+    try {
+      await this.db
+        .collection("users")
+        .doc(userId)
+        .collection("notifications")
+        .doc(notificationId)
+        .delete();
+    } catch (error) {
+      console.error("[UserDataService] deleteNotification:", error.message);
+      throw error;
+    }
+  }
+
+  async deleteArchive(userId, archiveId) {
+    try {
+      await this.db
+        .collection("users")
+        .doc(userId)
+        .collection("archives")
+        .doc(archiveId)
+        .delete();
+    } catch (error) {
+      console.error("[UserDataService] deleteArchive:", error.message);
+      throw error;
+    }
+  }
+
   /**
    * Add settings/preferences
    * @param {string} userId - User ID
@@ -436,8 +506,4 @@ class UserDataService {
   }
 }
 
-// Expose singleton
-window.userDataService = new UserDataService();
-
-// Create global instance
 window.userDataService = new UserDataService();

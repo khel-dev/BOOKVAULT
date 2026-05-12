@@ -43,6 +43,7 @@ async function loadBillingStatements() {
         renderBillingStatements();
         updateBillingStats();
         populateReminders();
+        updateNotificationBadge();
     }
 }
 
@@ -73,6 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
         populateNewClientSelect();
         populateBulkClients();
         await loadBillingStatements();
+        await updateNotificationBadge();
 
         const urlParams = new URLSearchParams(window.location.search);
         const clientId = urlParams.get('clientId');
@@ -108,7 +110,8 @@ function setupEventListeners() {
             const searchTerm = e.target.value.toLowerCase();
             filteredBillingStatements = billingStatements.filter(
                 (bs) =>
-                    bs.id.toLowerCase().includes(searchTerm) || bs.clientName.toLowerCase().includes(searchTerm),
+                    String(bs.id || "").toLowerCase().includes(searchTerm) ||
+                    String(bs.clientName || "").toLowerCase().includes(searchTerm),
             );
             renderBillingStatements();
         });
@@ -143,7 +146,8 @@ function applyFilters() {
 
     filteredBillingStatements = billingStatements.filter((bs) => {
         const statusMatch = statusFilter === "all" || bs.status === statusFilter;
-        const monthMatch = monthFilter === "all" || bs.billingPeriodStart.startsWith(monthFilter);
+        const start = bs.billingPeriodStart || "";
+        const monthMatch = monthFilter === "all" || (typeof start === "string" && start.startsWith(monthFilter));
         return statusMatch && monthMatch;
     });
 
@@ -171,6 +175,25 @@ function renderBillingStatements() {
     const container = document.getElementById("billingStatementsTable");
     if (!container) {
         console.error("Billing statements table container not found");
+        return;
+    }
+
+    if (isLoading) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; color: #a3a3a3;">
+                <i class="fas fa-circle-notch fa-spin" style="font-size: 40px; margin-bottom: 14px;"></i>
+                <h3>Loading billing statements…</h3>
+            </div>`;
+        return;
+    }
+
+    if (lastError) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; color: #a3a3a3;">
+                <i class="fas fa-triangle-exclamation" style="font-size: 40px; margin-bottom: 14px;"></i>
+                <h3>${lastError}</h3>
+                <button type="button" class="btn-primary" onclick="loadBillingStatements()">Retry</button>
+            </div>`;
         return;
     }
 
@@ -205,7 +228,7 @@ function renderBillingStatements() {
                         <tr>
                             <td class="invoice-number">${bs.id}</td>
                             <td class="client-name"><a href="clients.html?clientId=${bs.clientId}">${bs.clientName}</a></td>
-                            <td class="invoice-amount">₱${bs.amount.toLocaleString()}</td>
+                            <td class="invoice-amount">₱${Number(bs.amount || 0).toLocaleString()}</td>
                             <td>${formatDate(bs.billingPeriodStart)}</td>
                             <td>${formatDate(bs.billingPeriodEnd)}</td>
                             <td>
@@ -220,6 +243,13 @@ function renderBillingStatements() {
                                     </button>
                                     <button class="action-btn-small btn-send" onclick="sendBillingStatement('${bs.id}')" type="button">
                                         <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                    ${bs.status !== "paid" ? `
+                                    <button class="action-btn-small btn-view" onclick="markBillingAsPaid('${bs.id}')" type="button" title="Mark as paid">
+                                        <i class="fas fa-check"></i>
+                                    </button>` : ""}
+                                    <button class="action-btn-small btn-view" onclick="printBillingStatement('${bs.id}')" type="button" title="Print">
+                                        <i class="fas fa-print"></i>
                                     </button>
                                     <button class="action-btn-small btn-delete" onclick="deleteBillingStatement('${bs.id}')" type="button">
                                         <i class="fas fa-trash"></i>
@@ -545,12 +575,16 @@ function viewBillingStatement(billingStatementId) {
         if (viewStatus) viewStatus.innerHTML = `<span class="status-badge status-${billingStatement.status}">${billingStatement.status}</span>`;
 
         if (viewServices) {
-            viewServices.innerHTML = billingStatement.services
-                .map((service) => `<p>${service.description}: ₱${service.amount.toLocaleString()}</p>`)
+            const svc = Array.isArray(billingStatement.services) ? billingStatement.services : [];
+            viewServices.innerHTML = svc
+                .map((service) => `<p>${service.description}: ₱${Number(service.amount || 0).toLocaleString()}</p>`)
                 .join("");
         }
 
-        const subtotal = billingStatement.services.reduce((sum, service) => sum + service.amount, 0);
+        const subtotal = (Array.isArray(billingStatement.services) ? billingStatement.services : []).reduce(
+            (sum, service) => sum + Number(service.amount || 0),
+            0,
+        );
         const tax = subtotal * 0.12;
         if (viewSubtotal) viewSubtotal.textContent = `₱${subtotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
         if (viewTax) viewTax.textContent = `₱${tax.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
@@ -653,7 +687,7 @@ function closeBulkBillingStatementModal() {
 function generateBulkBillingStatements() {
     console.log("Generating bulk billing statements");
     const selectedClients = Array.from(document.querySelectorAll(".bulk-client-checkbox:checked")).map(
-        (checkbox) => Number.parseInt(checkbox.value),
+        (checkbox) => checkbox.value,
     );
 
     if (selectedClients.length === 0) {
@@ -673,7 +707,7 @@ function generateBulkBillingStatements() {
     }
 
     selectedClients.forEach((clientId) => {
-        const client = (cachedClients || []).find((c) => c.id === String(clientId)) || (cachedClients || []).find(c => c.id === clientId);
+        const client = (cachedClients || []).find((c) => c.id === clientId);
         if (client) {
             const nextNumber = billingStatements.length + 1;
             const billingStatementId = `BS-${new Date().getFullYear()}-${nextNumber.toString().padStart(3, "0")}`;
@@ -776,10 +810,10 @@ function updateBillingStats() {
     const pendingCount = document.getElementById("pendingCount");
     const overdueCount = document.getElementById("overdueCount");
 
-    if (totalRevenue) totalRevenue.textContent = `₱${billingStatements.reduce((sum, bs) => sum + (bs.status === "paid" ? bs.amount : 0), 0).toLocaleString()}`;
-    if (paidBillingStatements) paidBillingStatements.textContent = `₱${billingStatements.reduce((sum, bs) => sum + (bs.status === "paid" ? bs.amount : 0), 0).toLocaleString()}`;
-    if (pendingBillingStatements) pendingBillingStatements.textContent = `₱${billingStatements.reduce((sum, bs) => sum + (bs.status === "pending" ? bs.amount : 0), 0).toLocaleString()}`;
-    if (overdueBillingStatements) overdueBillingStatements.textContent = `₱${billingStatements.reduce((sum, bs) => sum + (bs.status === "overdue" ? bs.amount : 0), 0).toLocaleString()}`;
+    if (totalRevenue) totalRevenue.textContent = `₱${billingStatements.reduce((sum, bs) => sum + (bs.status === "paid" ? Number(bs.amount || 0) : 0), 0).toLocaleString()}`;
+    if (paidBillingStatements) paidBillingStatements.textContent = `₱${billingStatements.reduce((sum, bs) => sum + (bs.status === "paid" ? Number(bs.amount || 0) : 0), 0).toLocaleString()}`;
+    if (pendingBillingStatements) pendingBillingStatements.textContent = `₱${billingStatements.reduce((sum, bs) => sum + (bs.status === "pending" ? Number(bs.amount || 0) : 0), 0).toLocaleString()}`;
+    if (overdueBillingStatements) overdueBillingStatements.textContent = `₱${billingStatements.reduce((sum, bs) => sum + (bs.status === "overdue" ? Number(bs.amount || 0) : 0), 0).toLocaleString()}`;
     if (revenueChange) revenueChange.textContent = `+${Math.floor(Math.random() * 10)}% this month`;
     if (paidCount) paidCount.textContent = `${billingStatements.filter(bs => bs.status === "paid").length} statements`;
     if (pendingCount) pendingCount.textContent = `${billingStatements.filter(bs => bs.status === "pending").length} statements`;
@@ -875,7 +909,8 @@ function showReportTab(tab) {
     console.log(`Showing ${tab} report tab`);
     const tabButtons = document.querySelectorAll(".tab-btn");
     tabButtons.forEach(btn => btn.classList.remove("active"));
-    document.querySelector(`.tab-btn[onclick="showReportTab('${tab}')"]`).classList.add("active");
+    const activeBtn = document.querySelector(`.tab-btn[onclick="showReportTab('${tab}')"]`);
+    if (activeBtn) activeBtn.classList.add("active");
 
     const reportContent = document.querySelector(".report-content");
     if (reportContent) {
@@ -912,6 +947,64 @@ function exportReport() {
     a.click();
     window.URL.revokeObjectURL(url);
 }
+
+async function updateNotificationBadge() {
+    const uid = getUid();
+    const badge = document.getElementById("notificationBadge");
+    if (!badge || !uid || !window.userDataService) return;
+    try {
+        const n = await window.userDataService.getUnreadNotificationCount(uid);
+        badge.textContent = n > 99 ? "99+" : String(n);
+        badge.style.display = n > 0 ? "inline-flex" : "none";
+    } catch (e) {
+        console.warn(e);
+    }
+}
+
+async function markBillingAsPaid(billingStatementId) {
+    const uid = getUid();
+    if (!uid || !window.userDataService) return;
+    try {
+        await window.userDataService.updateBillingRecord(uid, billingStatementId, {
+            status: "paid",
+            paidAt: new Date().toISOString(),
+        });
+        showNotification("Marked as paid.", "success");
+        await loadBillingStatements();
+    } catch (e) {
+        console.error(e);
+        showNotification("Could not update status.", "error");
+    }
+}
+
+function printBillingStatement(billingStatementId) {
+    const bs = billingStatements.find((b) => b.id === billingStatementId);
+    if (!bs) return;
+    const w = window.open("", "_blank");
+    if (!w) return;
+    const svc = Array.isArray(bs.services) ? bs.services : [];
+    w.document.write(`<!DOCTYPE html><html><head><title>Statement ${bs.id}</title>
+      <style>body{font-family:system-ui;padding:24px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #ddd;padding:8px}</style></head><body>
+      <h1>Billing statement</h1><p><b>ID:</b> ${bs.id}</p><p><b>Client:</b> ${bs.clientName}</p>
+      <p><b>Period:</b> ${formatDate(bs.billingPeriodStart)} – ${formatDate(bs.billingPeriodEnd)}</p>
+      <p><b>Status:</b> ${String(bs.status || "")}</p>
+      <p><b>Total:</b> ₱${Number(bs.amount || 0).toLocaleString()}</p>
+      <table><thead><tr><th>Description</th><th>Amount</th></tr></thead><tbody>
+      ${svc.map((s) => `<tr><td>${String(s.description || "").replace(/</g, "&lt;")}</td><td>₱${Number(s.amount || 0).toLocaleString()}</td></tr>`).join("")}
+      </tbody></table></body></html>`);
+    w.document.close();
+    w.focus();
+    w.print();
+}
+
+document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    closeViewBillingStatementModal();
+    closeBulkBillingStatementModal();
+    closeRemindersModal();
+    closeReportsModal();
+    closeProfileModal();
+});
 
 function showNotification(message, type = "info") {
     const notification = document.createElement("div");

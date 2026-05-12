@@ -107,3 +107,17 @@ body {
   border-radius: 18px;
 }
 
+/* Loading skeletons (data tables / cards) */
+.bv-skeleton {
+  background: linear-gradient(90deg, #f0f2f8 0%, #e8ecf4 50%, #f0f2f8 100%);
+  background-size: 200% 100%;
+  animation: bv-shimmer 1.2s ease-in-out infinite;
+  border-radius: 10px;
+}
+@keyframes bv-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+.bv-skeleton-line { height: 14px; margin-bottom: 10px; }
+.bv-skeleton-title { height: 22px; width: 40%; margin-bottom: 16px; }
+
