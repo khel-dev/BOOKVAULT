@@ -422,6 +422,8 @@ function saveOrUpdateClient() {
 
     const editingId = document.getElementById("addClientModal").dataset.editingId;
     const uid = getUid();
+    console.log("[Clients] Saving client - UID:", uid, "EditingId:", editingId);
+    
     if (!uid) {
         alert("Please login again.");
         window.location.href = "login.html";
@@ -435,6 +437,7 @@ function saveOrUpdateClient() {
     (async () => {
         try {
             if (editingId) {
+                console.log("[Clients] Updating existing client:", editingId);
                 await window.userDataService.updateClient(uid, editingId, {
                     businessName,
                     contactPerson,
@@ -448,7 +451,8 @@ function saveOrUpdateClient() {
                 });
                 alert("Client updated successfully!");
             } else {
-                await window.userDataService.addClient(uid, {
+                console.log("[Clients] Creating new client with businessName:", businessName);
+                const clientId = await window.userDataService.addClient(uid, {
                     businessName,
                     contactPerson,
                     email,
@@ -461,18 +465,25 @@ function saveOrUpdateClient() {
                     status: "active",
                     lastPayment: new Date().toISOString().split("T")[0],
                 });
+                console.log("[Clients] New client created with ID:", clientId);
                 alert("Client added successfully!");
             }
             closeAddClientModal();
             await loadClientsFromFirestore();
         } catch (e) {
-            console.error(e);
+            console.error("[Clients] Error saving client:", e);
             alert("Failed to save client. Please try again.");
         }
     })();
 }
 
 function viewClient(clientId) {
+    console.log("[Clients] Viewing client:", clientId);
+    if (!clientId) {
+        console.error("[Clients] No clientId provided");
+        alert("Invalid client");
+        return;
+    }
     window.location.href = `client-detail.html?clientId=${encodeURIComponent(clientId)}`;
 }
 

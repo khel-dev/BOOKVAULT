@@ -47,27 +47,53 @@ async function updateNotificationBadge() {
 
 async function loadClientDetails() {
   const id = getClientIdFromURL();
-  if (!id) return showNotFound();
+  console.log("[Client Detail] Step 1 - Client ID from URL:", id);
+  if (!id) {
+    console.warn("[Client Detail] No client ID in URL");
+    return showNotFound();
+  }
 
+  // Wait for userDataService to be available
   let w = 0;
   while (!window.userDataService && w++ < 50) await new Promise((r) => setTimeout(r, 100));
-  if (!window.userDataService) return showNotFound();
+  console.log("[Client Detail] Step 2 - UserDataService ready:", !!window.userDataService);
+  if (!window.userDataService) {
+    console.error("[Client Detail] UserDataService never initialized");
+    return showNotFound();
+  }
 
+  // Wait for UID to be available
   let uid = getUid();
+  console.log("[Client Detail] Step 3a - Initial UID:", uid);
   if (!uid) {
     let t = 0;
     while (!getUid() && t++ < 40) await new Promise((r) => setTimeout(r, 150));
     uid = getUid();
+    console.log("[Client Detail] Step 3b - UID after waiting:", uid);
   }
-  if (!uid) return showNotFound();
+  if (!uid) {
+    console.error("[Client Detail] Could not retrieve UID - user not authenticated");
+    return showNotFound();
+  }
 
   try {
+    console.log("[Client Detail] Step 4 - Fetching client with UID:", uid, "and ID:", id);
     currentClient = await window.userDataService.getClient(uid, id);
-    currentClientBilling = await window.userDataService.getBillingRecordsByClient(uid, id);
-    renderClient();
+    console.log("[Client Detail] Step 5 - Client fetched:", currentClient);
+    
+    if (currentClient) {
+      console.log("[Client Detail] Step 6 - Client found, fetching billing records");
+      currentClientBilling = await window.userDataService.getBillingRecordsByClient(uid, id);
+      console.log("[Client Detail] Step 7 - Billing records fetched:", currentClientBilling.length, "records");
+      renderClient();
+    } else {
+      console.warn("[Client Detail] Step 5 - Client data is null/undefined");
+      showNotFound();
+    }
     await updateNotificationBadge();
   } catch (e) {
-    console.error(e);
+    console.error("[Client Detail] ERROR - Failed to load client details:", e.message);
+    console.error("[Client Detail] Full error:", e);
     showNotFound();
   }
 }
