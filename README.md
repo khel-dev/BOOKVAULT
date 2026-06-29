@@ -1,249 +1,171 @@
-# 📚 BookVault
+# BookKeeper
 
-**Professional Bookkeeping Management Platform** - Built with Firebase & JavaScript
+BookKeeper is a static bookkeeping web application for bookkeepers and MSMEs. It helps users manage clients, billing statements, archived records, notifications, and account settings through a browser-based dashboard.
 
-> A modern bookkeeping application for managing clients, billing, and financial records. No backend required - powered by Firebase.
+The project was originally named BookVault in some files/assets, but the current app branding and page titles use BookKeeper.
 
-## ✨ Features
+## What This Project Is
 
-- 🔐 **Secure Authentication** - Email/password login with Firebase Auth
-- 📊 **Client Management** - Add, edit, and track clients
-- 💰 **Billing Management** - Create and manage billing statements
-- 📑 **Archive System** - Store and organize financial documents
-- 🔔 **Notifications** - Real-time alerts and updates
-- ⚙️ **Settings** - Customize preferences and account settings
-- 🌐 **Real-time Sync** - Firestore keeps data synced across devices
+BookKeeper is a frontend-first bookkeeping management system built with HTML, CSS, and vanilla JavaScript. Firebase provides the backend services for authentication, Firestore database storage, and hosting.
 
-## 🚀 Tech Stack
+No PHP backend is required in the current version.
 
-| Component | Technology |
-|-----------|-----------|
-| **Frontend** | Vanilla JavaScript, HTML, CSS |
-| **Backend** | Firebase (no server needed) |
-| **Database** | Firestore (NoSQL, real-time) |
-| **Authentication** | Firebase Auth |
-| **Deployment** | Firebase Hosting or any web server |
+## Main Features
 
-## 📁 Project Structure
+- Landing page for the BookKeeper app
+- Email/password login with Firebase Authentication
+- Multi-step account registration
+- Dashboard with bookkeeping overview
+- Client management
+- Client detail view
+- Billing statement management
+- Archive page for stored records
+- Notifications page
+- Settings page
+- Help and support page
+- Firebase debug pages for checking setup status
 
-```
+## Tech Stack
+
+| Area | Technology |
+| --- | --- |
+| Frontend | HTML, CSS, Vanilla JavaScript |
+| Authentication | Firebase Authentication |
+| Database | Cloud Firestore |
+| Hosting | Firebase Hosting |
+| Charts | Chart.js |
+| Icons | Font Awesome |
+| Main app folder | `public/` |
+
+## Project Structure
+
+```text
 BOOKVAULT/
-├── public/                  # Web files (deployed)
-│   ├── index.html          # Landing page
-│   ├── app/                # Application pages
-│   └── assets/             # CSS, JS, images
-├── docs/                   # Documentation
-│   ├── STRUCTURE.md        # Folder structure overview
-│   ├── SETUP.md           # Setup instructions ⭐
-│   ├── FIREBASE-RULES.md  # Security rules
-│   └── API.md             # Service API docs
-└── README.md              # This file
+|-- index.html                  # Root redirect to public/index.html
+|-- 404.html                    # Firebase Hosting fallback page
+|-- firebase.json               # Firebase Hosting config
+|-- .firebaserc                 # Firebase project alias
+|-- public/
+|   |-- index.html              # Landing page
+|   |-- debug.html              # Firebase debug page
+|   |-- debug-simple.html       # Simple debug page
+|   |-- app/                    # App screens
+|   |-- assets/
+|       |-- css/                # Page styles
+|       |-- js/                 # Page scripts and Firebase services
+|       |-- img/                # Logos and images
+|-- docs/                       # Setup, API, and Firebase notes
 ```
 
-## ⚡ Quick Start
+## App Pages
 
-### 1. Prerequisites
-- Firebase project created (with Email/Password auth enabled and Firestore database)
-- Firebase config credentials
-- Modern web browser
+| Page | Route |
+| --- | --- |
+| Landing | `/public/index.html` |
+| Login | `/public/app/login.html` |
+| Registration - Personal | `/public/app/registration_personal.html` |
+| Registration - Business | `/public/app/registration_business.html` |
+| Registration - Account | `/public/app/registration_account.html` |
+| Dashboard | `/public/app/dashboard.html` |
+| Clients | `/public/app/clients.html` |
+| Client Detail | `/public/app/client-detail.html` |
+| Billing | `/public/app/billing.html` |
+| Archive | `/public/app/archive.html` |
+| Notifications | `/public/app/notifications.html` |
+| Settings | `/public/app/settings.html` |
+| Help | `/public/app/help.html` |
+| Firebase Debug | `/public/debug.html` |
 
-### 2. Configure Firebase
-Edit `public/assets/js/firebase/firebaseConfig.js`:
-```javascript
-window.__BOOKVAULT_FIREBASE_CONFIG__ = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "your-app.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-app.firebasestorage.app",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
+The root `index.html` redirects visitors to `public/index.html`.
+
+## Firebase Setup
+
+Firebase configuration is stored in:
+
+```text
+public/assets/js/firebase/firebaseConfig.js
 ```
 
-### 3. Set Firestore Rules
-Copy security rules from `docs/FIREBASE-RULES.md` to Firebase Console → Firestore → Rules
+The Firebase project alias is stored in:
 
-### 4. Run Locally
-```bash
-# Using Python 3
-python -m http.server 8000
-
-# Then open: http://localhost:8000/BOOKVAULT/public/
+```text
+.firebaserc
 ```
 
-### 5. Test Registration
-- Go to landing page (`/index.html`)
-- Click "Register"
-- Complete 3-step registration
-- Check Firebase Console for new user
+Required Firebase services:
 
-📖 **Full setup guide**: See [docs/SETUP.md](docs/SETUP.md)
+- Firebase Authentication with Email/Password sign-in enabled
+- Cloud Firestore
+- Firebase Hosting
 
-## 📚 Documentation
+Related documentation:
 
-| Document | Purpose |
-|----------|---------|
-| [**SETUP.md**](docs/SETUP.md) | Step-by-step setup instructions ⭐ **START HERE** |
-| [**STRUCTURE.md**](docs/STRUCTURE.md) | Project folder structure & architecture |
-| [**FIREBASE-RULES.md**](docs/FIREBASE-RULES.md) | Firestore security rules to set up |
-| [**API.md**](docs/API.md) | Complete services API reference |
-
-## 🔄 How It Works
-
-### Authentication Flow
-```
-User fills registration form
-         ↓
-Data stored in sessionStorage
-         ↓
-Submit credentials to Firebase Auth
-         ↓
-User account created + profile stored in Firestore
-         ↓
-User logged in, redirect to dashboard
+```text
+docs/SETUP.md
+docs/FIREBASE-RULES.md
+docs/API.md
+docs/STRUCTURE.md
 ```
 
-### Data Management
-```
-Frontend (Vanilla JS)
-         ↓
-authService.js (Firebase Auth operations)
-         ↓
-userDataService.js (Firestore CRUD operations)
-         ↓
-Firebase Firestore (Real-time database)
-```
+## Data Model
 
-## 🛠 Services
+The app stores user-owned bookkeeping data under each authenticated user in Firestore.
 
-### AuthService
-Handles user authentication:
-```javascript
-await authService.register(email, password, userData)  // Create account
-await authService.login(email, password)               // Login
-await authService.logout()                             // Logout
-authService.isLoggedIn()                              // Check status
-```
-
-### UserDataService
-Manages user data:
-```javascript
-await userDataService.addClient(uid, clientData)           // Add client
-await userDataService.getClients(uid)                      // Fetch clients
-await userDataService.addBillingRecord(uid, billData)      // Add billing
-await userDataService.updateSettings(uid, settings)        // Update settings
-```
-
-📚 Full API docs: [docs/API.md](docs/API.md)
-
-## 🗂 Firestore Schema
-
-```
+```text
 users/
-├── {uid}/
-│   ├── email, firstName, lastName, businessName...
-│   ├── clients/
-│   ├── billing/
-│   ├── archives/
-│   ├── notifications/
-│   └── settings/
+|-- {uid}/
+|   |-- clients/
+|   |-- billing/
+|   |-- archives/
+|   |-- notifications/
+|   |-- settings/
 ```
 
-Each user's data is private and isolated in Firestore.
+## Run Locally
 
-## 🔐 Security
+Because this is a static app, it can be served with any simple local server.
 
-- ✅ Firebase Auth protects user accounts
-- ✅ Firestore security rules prevent data access between users
-- ✅ Passwords never exposed in code
-- ✅ HTTPS required for production
+Using Python:
 
-See [docs/FIREBASE-RULES.md](docs/FIREBASE-RULES.md) for security rules.
+```bash
+python -m http.server 8000
+```
 
-## 📊 Pages
+Then open:
 
-| Page | Purpose | Route |
-|------|---------|-------|
-| Landing | Homepage | `/` |
-| Login | User login | `/app/login.html` |
-| Registration (3-step) | Account creation | `/app/registration_personal.html` |
-| Dashboard | Main app (create) | `/app/dashboard.html` |
-| Clients | Manage clients | `/app/clients.html` |
-| Billing | Billing statements | `/app/billing.html` |
-| Archive | Document storage | `/app/archive.html` |
-| Settings | User preferences | `/app/settings.html` |
-| Debug | Firebase status | `/debug.html` |
+```text
+http://localhost:8000/public/index.html
+```
 
-## 🚀 Deployment
+## Deploy to Firebase Hosting
 
-### Option 1: Firebase Hosting (Recommended)
+Install Firebase CLI if needed:
+
 ```bash
 npm install -g firebase-tools
+```
+
+Login:
+
+```bash
 firebase login
-firebase init hosting
+```
+
+Deploy:
+
+```bash
 firebase deploy
 ```
 
-### Option 2: Any Web Server
-Copy `public/` folder to your server. Requires HTTPS for Firebase.
+The current `firebase.json` deploys from the repository root, where `index.html` redirects into the `public/` app.
 
-### Option 3: GitHub Pages
-Push to GitHub, enable Pages, but remember HTTPS is required.
+## Notes
 
-## 🐛 Troubleshooting
+- The current version is not PHP-based.
+- Firebase handles authentication, database, and hosting.
+- The app uses page-specific JavaScript files in `public/assets/js/`.
+- Some asset and service names still use the older BookVault name.
 
-**Q: "Firebase initializing..." message won't go away?**
-- Check `public/debug.html` to see Firebase status
-- Verify Firebase config is correct in `firebaseConfig.js`
-- Check browser console (F12) for errors
-
-**Q: Registration not working?**
-- Ensure Firestore security rules are published
-- Check Firestore database exists
-- Verify Email/Password auth is enabled in Firebase
-
-**Q: Data not saving to Firestore?**
-- Check Firestore rules allow writes (see FIREBASE-RULES.md)
-- Verify user is authenticated
-- Open browser DevTools console for error messages
-
-See [docs/SETUP.md](docs/SETUP.md) **Troubleshooting** section for more.
-
-## 📱 Browser Support
-
-- ✅ Chrome/Edge 90+
-- ✅ Firefox 88+
-- ✅ Safari 14+
-- ✅ Mobile browsers (iOS Safari, Chrome Android)
-
-## 📝 Development Notes
-
-- **No build tooling needed** - vanilla JS, HTML, CSS
-- **No server required** - Firebase handles backend
-- **Real-time updates** - Firestore syncs data automatically
-- **Open source** - Feel free to extend and customize
-
-## 🎯 Next Steps
-
-1. ✅ Follow [docs/SETUP.md](docs/SETUP.md) to get running
-2. 📄 Create dashboard page in `public/app/dashboard.html`
-3. 📝 Create page scripts in `public/assets/js/pages/`
-4. 🎨 Customize styling in `public/assets/css/`
-5. 🚀 Deploy to Firebase Hosting or web server
-
-## 📞 Support
-
-- 📖 Check docs in `/docs` folder
-- 🐛 Use `public/debug.html` to diagnose issues
-- 🔍 Check browser console (F12 → Console tab)
-- 📚 See [Firebase Documentation](https://firebase.google.com/docs)
-
-## 📄 License
+## License
 
 Private project. All rights reserved.
-
----
-
-**Ready to get started?** → **[Go to SETUP.md →](docs/SETUP.md)**
-
-Made with 💙 for bookkeepers
