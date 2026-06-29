@@ -1,0 +1,274 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background:
+    linear-gradient(rgba(0, 173, 239, 0.18), rgba(46, 49, 146, 0.12)),
+    radial-gradient(1000px 700px at 20% 10%, rgba(0, 173, 239, 0.22), transparent 55%),
+    radial-gradient(900px 700px at 80% 20%, rgba(46, 49, 146, 0.18), transparent 55%),
+    radial-gradient(900px 800px at 50% 80%, rgba(11, 153, 255, 0.10), transparent 60%),
+    #f7fbff;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.container {
+  display: flex;
+  gap: 40px;
+  max-width: 1200px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Logo Card */
+.logo-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  border-radius: 22px;
+  padding: 60px 40px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  box-shadow: 0 24px 80px rgba(2, 28, 47, 0.14);
+  text-align: center;
+  min-width: 350px;
+}
+
+.logo-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo-icon {
+  margin-bottom: 10px;
+}
+
+.logo-text {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2e3192;
+  letter-spacing: 2px;
+  margin: 0;
+}
+
+/* Login Card */
+.login-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  border-radius: 22px;
+  padding: 40px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  box-shadow: 0 24px 80px rgba(2, 28, 47, 0.14);
+  width: 100%;
+  max-width: 420px;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.brand-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2e3192;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.welcome-text {
+  color: #6b7280;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+/* Form Styles */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  position: relative;
+}
+
+.form-label {
+  display: block;
+  color: #2e3192;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 16px 20px;
+  border: 2px solid rgba(46, 49, 146, 0.18);
+  border-radius: 50px;
+  font-size: 1rem;
+  background: #ffffff;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: #00adef;
+  box-shadow: 0 0 0 4px rgba(0, 173, 239, 0.14);
+}
+
+.form-input::placeholder {
+  color: #9ca3af;
+}
+
+/* Checkbox */
+.form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin: 8px 0;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #6b7280;
+  gap: 8px;
+}
+
+.forgot-password-link {
+  font-size: 14px;
+  color: #00adef;
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.forgot-password-link:hover {
+  text-decoration: underline;
+}
+
+.checkbox-container input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #00adef;
+  cursor: pointer;
+}
+
+/* Login Button */
+.login-button {
+  background: #2e3192;
+  color: white;
+  border: none;
+  padding: 16px 24px;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 8px;
+}
+
+.login-button:hover {
+  background: #1e2082;
+  transform: translateY(-1px);
+  box-shadow: 0 14px 36px rgba(46, 49, 146, 0.22);
+}
+
+.login-button:active {
+  transform: translateY(0);
+}
+
+/* Divider */
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 24px 0 16px 0;
+  gap: 16px;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.divider-text {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Create Account Link */
+.create-account-link {
+  text-align: center;
+  color: #374151;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: color 0.3s ease;
+}
+
+.create-account-link:hover {
+  color: #00adef;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    gap: 30px;
+    padding: 20px;
+  }
+
+  .logo-card {
+    min-width: auto;
+    width: 100%;
+    max-width: 420px;
+    padding: 40px 30px;
+  }
+
+  .logo-text {
+    font-size: 2rem;
+  }
+
+  .login-card {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 15px;
+  }
+
+  .logo-card,
+  .login-card {
+    padding: 25px 20px;
+  }
+
+  .brand-title {
+    font-size: 1.5rem;
+  }
+
+  .logo-text {
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+  }
+}

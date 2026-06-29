@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookKeeper - Billing Statements</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+    <link rel="stylesheet" href="../assets/css/billing.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/css/app_modern.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="logo-section">
+                <div class="logo">
+                    <img src="../assets/img/White Logo.png" alt="BookVault Logo" width="50" height="40" style="object-fit: contain;"/>
+                    <span>BookKeeper</span>
+                </div>
+                <div class="menu-label">menu</div>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="clients.html" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>Clients</span>
+                </a>
+                <a href="billing.html" class="nav-item active">
+                    <i class="fas fa-file-invoice"></i>
+                    <span>Billing Statements</span>
+                </a>
+                <a href="notifications.html" class="nav-item">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                </a>
+                <a href="archive.html" class="nav-item">
+                    <i class="fas fa-archive"></i>
+                    <span>Archive</span>
+                </a>
+            </nav>
+            
+            <div class="general-section">
+                <div class="section-label">general</div>
+                <a href="settings.html" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="help.html" class="nav-item">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Help & Support</span>
+                </a>
+                <a href="#" class="nav-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search billing statements..." id="billingSearch">
+                </div>
+                <div class="header-actions">
+                    <button class="notification-icon" onclick="goToNotifications()" type="button">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationBadge" style="display:none;">0</span>
+                    </button>
+                    <button class="user-avatar" onclick="openProfileModal()" type="button">
+                        <img id="userAvatarHeader" src="" alt="User">
+                    </button>
+                </div>
+            </div>
+
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Billing Statements</h1>
+                    <p>Generate and manage billing statements for your clients</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn-secondary" onclick="exportBilling()" type="button">
+                        <i class="fas fa-download"></i>
+                        Export All
+                    </button>
+                    <button class="btn-primary" id="createBillingStatementBtn" type="button">
+                        <i class="fas fa-plus"></i>
+                        Create Billing Statement
+                    </button>
+                </div>
+            </div>
+
+            <div class="billing-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="totalRevenue">₱0</div>
+                        <div class="stat-label">Total Revenue</div>
+                        <div class="stat-change positive" id="revenueChange">+0% this month</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon paid">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="paidBillingStatements">₱0</div>
+                        <div class="stat-label">Paid Billing Statements</div>
+                        <div class="stat-change positive" id="paidCount">0 statements</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon pending">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="pendingBillingStatements">₱0</div>
+                        <div class="stat-label">Pending Billing Statements</div>
+                        <div class="stat-change" id="pendingCount">0 statements</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon overdue">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="overdueBillingStatements">₱0</div>
+                        <div class="stat-label">Overdue</div>
+                        <div class="stat-change negative" id="overdueCount">0 statements</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <h3>Quick Actions</h3>
+                <div class="action-cards">
+                    <button class="action-card" onclick="openBulkBillingStatementModal()" type="button">
+                        <div class="action-icon">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <div class="action-info">
+                            <h4>Bulk Billing Statement</h4>
+                            <p>Generate billing statements for multiple clients</p>
+                        </div>
+                    </button>
+                    <button class="action-card" onclick="openRemindersModal()" type="button">
+                        <div class="action-icon">
+                            <i class="fas fa-paper-plane"></i>
+                        </div>
+                        <div class="action-info">
+                            <h4>Send Reminders</h4>
+                            <p>Email payment reminders to clients</p>
+                        </div>
+                    </button>
+                    <button class="action-card" onclick="openReportsModal()" type="button">
+                        <div class="action-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="action-info">
+                            <h4>Revenue Reports</h4>
+                            <p>View detailed financial reports</p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="filters-section">
+                <div class="filter-group">
+                    <select class="filter-select" id="statusFilter">
+                        <option value="all">All Status</option>
+                        <option value="paid">Paid</option>
+                        <option value="pending">Pending</option>
+                        <option value="overdue">Overdue</option>
+                        <option value="draft">Draft</option>
+                    </select>
+                    <select class="filter-select" id="monthFilter">
+                        <option value="all">All Months</option>
+                        <option value="2024-12">December 2024</option>
+                        <option value="2024-11">November 2024</option>
+                        <option value="2024-10">October 2024</option>
+                    </select>
+                    <button class="filter-btn" onclick="clearFilters()" type="button">
+                        <i class="fas fa-times"></i>
+                        Clear Filters
+                    </button>
+                </div>
+            </div>
+
+            <div class="invoices-container">
+                <div class="table-header">
+                    <h3>Recent Billing Statements</h3>
+                    <div class="table-actions">
+                        <button class="btn-icon" onclick="refreshBillingStatements()" type="button">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="invoices-table" id="billingStatementsTable">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Create Billing Statement Modal -->
+    <div class="modal-overlay" id="newCreateBillingStatementModal">
+        <div class="modal large">
+            <div class="modal-header">
+                <h2>Create New Billing Statement</h2>
+                <button class="modal-close" onclick="closeNewCreateBillingStatementModal()" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="newCreateBillingStatementForm">
+                    <div class="form-section">
+                        <h4>Client Information</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Select Client *</label>
+                                <select id="newClientSelect" required>
+                                    <option value="">Choose a client...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Billing Period Start *</label>
+                                <input type="date" id="newBillingPeriodStart" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Billing Period End *</label>
+                                <input type="date" id="newBillingPeriodEnd" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Billing Statement Number</label>
+                                <input type="text" id="newBillingStatementNumber" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4>Services & Charges</h4>
+                        <div class="services-container" id="newServicesContainer">
+                            <div class="service-item">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Service Description</label>
+                                        <input type="text" class="service-description" placeholder="Monthly bookkeeping services">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Amount</label>
+                                        <input type="number" class="service-amount" step="0.01" placeholder="0.00">
+                                    </div>
+                                    <div class="form-group">
+                                        <button type="button" class="btn-remove" onclick="removeNewService(this)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-add-service" onclick="addNewService()">
+                            <i class="fas fa-plus"></i>
+                            Add Service
+                        </button>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="invoice-summary">
+                            <div class="summary-row">
+                                <span>Subtotal:</span>
+                                <span id="newSubtotal">₱0.00</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Tax (12%):</span>
+                                <span id="newTax">₱0.00</span>
+                            </div>
+                            <div class="summary-row total">
+                                <span>Total:</span>
+                                <span id="newTotal">₱0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label>Notes (Optional)</label>
+                            <textarea id="newBillingNotes" rows="3" placeholder="Additional notes or payment instructions..."></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeNewCreateBillingStatementModal()" type="button">Cancel</button>
+                <button class="btn-secondary" onclick="saveNewDraft()" type="button">Save as Draft</button>
+                <button class="btn-primary" onclick="createNewBillingStatement()" type="button">Create & Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Billing Statement Modal -->
+    <div class="modal-overlay" id="viewBillingStatementModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Billing Statement Details</h2>
+                <button class="modal-close" onclick="closeViewBillingStatementModal()" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="invoice-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Billing Statement #:</span>
+                        <span class="detail-value" id="viewBillingStatementNumber"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Client:</span>
+                        <span class="detail-value" id="viewClientName"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Billing Period Start:</span>
+                        <span class="detail-value" id="viewBillingPeriodStart"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Billing Period End:</span>
+                        <span class="detail-value" id="viewBillingPeriodEnd"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Status:</span>
+                        <span class="detail-value" id="viewStatus"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Services & Charges:</span>
+                        <div id="viewServices"></div>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Subtotal:</span>
+                        <span class="detail-value" id="viewSubtotal"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Tax (12%):</span>
+                        <span class="detail-value" id="viewTax"></span>
+                    </div>
+                    <div class="detail-row total">
+                        <span class="detail-label">Total:</span>
+                        <span class="detail-value" id="viewTotal"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Notes:</span>
+                        <span class="detail-value" id="viewNotes"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeViewBillingStatementModal()" type="button">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Billing Statement Modal -->
+    <div class="modal-overlay" id="bulkBillingStatementModal">
+        <div class="modal large">
+            <div class="modal-header">
+                <h2>Bulk Billing Statement Generator</h2>
+                <button class="modal-close" onclick="closeBulkBillingStatementModal()" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-section">
+                    <h4>Select Clients</h4>
+                    <div class="bulk-clients-list" id="bulkClientsList">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+                <div class="form-section">
+                    <h4>Billing Details</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Service Description</label>
+                            <input type="text" id="bulkServiceDescription" value="Monthly Bookkeeping Services">
+                        </div>
+                        <div class="form-group">
+                            <label>Billing Period Start</label>
+                            <input type="date" id="bulkBillingPeriodStart">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Billing Period End</label>
+                            <input type="date" id="bulkBillingPeriodEnd">
+                        </div>
+                        <div class="form-group">
+                            <label>Use Monthly Fee</label>
+                            <input type="checkbox" id="useMonthlyFee" checked>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeBulkBillingStatementModal()" type="button">Cancel</button>
+                <button class="btn-primary" onclick="generateBulkBillingStatements()" type="button">Generate Billing Statements</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reminders Modal -->
+    <div class="modal-overlay" id="remindersModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Send Payment Reminders</h2>
+                <button class="modal-close" onclick="closeRemindersModal()" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="reminders-list" id="remindersList">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeRemindersModal()" type="button">Cancel</button>
+                <button class="btn-primary" onclick="sendReminders()" type="button">Send Reminders</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reports Modal -->
+    <div class="modal-overlay" id="reportsModal">
+        <div class="modal large">
+            <div class="modal-header">
+                <h2>Revenue Reports</h2>
+                <button class="modal-close" onclick="closeReportsModal()" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="reports-tabs">
+                    <button class="tab-btn active" onclick="showReportTab('monthly')" type="button">Monthly Revenue</button>
+                    <button class="tab-btn" onclick="showReportTab('client')" type="button">Client Performance</button>
+                    <button class="tab-btn" onclick="showReportTab('status')" type="button">Payment Status</button>
+                </div>
+                <div class="report-content">
+                    <canvas id="revenueChart" style="max-height: 400px;"></canvas>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="exportReport()" type="button">Export Report</button>
+                <button class="btn-secondary" onclick="closeReportsModal()" type="button">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="profile-modal-overlay">
+        <div class="profile-modal-content">
+            <button class="profile-modal-close" onclick="closeProfileModal()" type="button">&times;</button>
+            <div class="profile-header">
+                <img id="userAvatarProfile" src="" alt="User" class="profile-image">
+                <div class="profile-info">
+                    <h3 id="profileName">Yeng Rodriguez</h3>
+                    <p>Senior Bookkeeper</p>
+                    <span class="profile-status">Online</span>
+                </div>
+            </div>
+            <div class="profile-actions">
+                <a href="#" onclick="editProfile()" tabindex="0"><i class="fas fa-user-edit"></i> Edit Profile</a>
+                <a href="#" onclick="changePassword()" tabindex="0"><i class="fas fa-key"></i> Change Password</a>
+                <a href="settings.html" tabindex="0"><i class="fas fa-cog"></i> Settings</a>
+                <a href="#" onclick="logout()" tabindex="0"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="../assets/js/firebase/firebaseConfig.js"></script>
+    <script src="../assets/js/firebase/firebaseInit.js"></script>
+    <script src="../assets/js/firebase/authService.js"></script>
+    <script src="../assets/js/firebase/userDataService.js"></script>
+    <script src="../assets/js/firebase/authGuard.js"></script>
+    <script src="../assets/js/firebase/logout.js"></script>
+    <script src="../assets/js/billing.js"></script>
+</body>
+</html> 

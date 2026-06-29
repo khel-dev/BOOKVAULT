@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookKeeper - Account Setup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/registration_account.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo-card">
+            <div class="logo-content">
+                <div class="logo-icon">
+                    <img src="../assets/img/BookVault Logo.png" alt="BookVault Logo" width="120" height="80" style="object-fit: contain;"/>
+                </div>
+                <h1 class="logo-text">BOOKKEEPER</h1>
+                <p class="logo-subtitle">Professional Bookkeeping Made Simple</p>
+            </div>
+        </div>
+
+        <div class="registration-card">
+            <div class="registration-header">
+                <h2 class="brand-title">
+                    Join BookKeeper 
+                    <img src="../assets/img/BookVault Logo.png" alt="BookVault Logo" width="60" height="50" style="object-fit: contain;"/>
+                </h2>
+                </h2>
+                <p class="welcome-text">Create your professional bookkeeping account</p>
+            </div>
+
+            <form class="registration-form" id="accountForm">
+                <div class="step-indicator">
+                    <div class="step completed" data-step="1">
+                        <span class="step-number">1</span>
+                        <span class="step-label">Personal</span>
+                    </div>
+                    <div class="step completed" data-step="2">
+                        <span class="step-number">2</span>
+                        <span class="step-label">Business</span>
+                    </div>
+                    <div class="step active" data-step="3">
+                        <span class="step-number">3</span>
+                        <span class="step-label">Account</span>
+                    </div>
+                </div>
+
+                <div class="form-step active">
+                    <h3 class="step-title">Account Setup</h3>
+                    
+                    <div class="form-group">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" id="username" name="username" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" id="password" name="password" class="form-input" required>
+                        <div class="password-strength" id="passwordStrength"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword" class="form-label">Confirm Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" required>
+                        <div class="password-match" id="passwordMatch"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="securityQuestion" class="form-label">Security Question</label>
+                        <select id="securityQuestion" name="securityQuestion" class="form-input" required>
+                            <option value="">Select a security question</option>
+                            <option value="pet">What was the name of your first pet?</option>
+                            <option value="school">What was the name of your elementary school?</option>
+                            <option value="city">In what city were you born?</option>
+                            <option value="mother">What is your mother's maiden name?</option>
+                            <option value="car">What was your first car?</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="securityAnswer" class="form-label">Security Answer</label>
+                        <input type="text" id="securityAnswer" name="securityAnswer" class="form-input" required>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="terms" name="terms" required>
+                            <span class="checkmark"></span>
+                            I agree to the <a href="#" class="link">Terms of Service</a> and <a href="#" class="link">Privacy Policy</a>
+                        </label>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="newsletter" name="newsletter">
+                            <span class="checkmark"></span>
+                            Subscribe to BookVault updates and bookkeeping tips
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-navigation">
+                    <a href="registration_business.html" class="nav-button prev-button">Back to Business Info</a>
+                    <button type="submit" class="nav-button submit-button" id="submitButton">Create Account</button>
+                </div>
+
+                <div class="divider">
+                    <span class="divider-line"></span>
+                    <span class="divider-text">or</span>
+                    <span class="divider-line"></span>
+                </div>
+
+                <a href="login.html" class="login-link">Already have an account? Sign In</a>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="../assets/js/firebase/firebaseConfig.js"></script>
+    <script src="../assets/js/firebase/firebaseInit.js"></script>
+    <script src="../assets/js/firebase/authService.js"></script>
+    <script src="../assets/js/firebase/userDataService.js"></script>
+    <script src="../assets/js/registration_account.js"></script>
+</body>
+</html>

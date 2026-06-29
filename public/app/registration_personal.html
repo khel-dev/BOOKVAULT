@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookKeeper - Personal Information</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/registration_personal.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo-card">
+            <div class="logo-content">
+                <div class="logo-icon">
+                    <img src="../assets/img/BookVault Logo.png" alt="BookVault Logo" width="120" height="80" style="object-fit: contain;"/>
+                </div>
+                <h1 class="logo-text">BOOKKEEPER</h1>
+                <p class="logo-subtitle">Professional Bookkeeping Made Simple</p>
+            </div>
+        </div>
+
+        <div class="registration-card">
+            <div class="registration-header">
+                <h2 class="brand-title">
+                    Join BookKeeper
+                    <img src="../assets/img/BookVault Logo.png" alt="BookVault Logo" width="60" height="50" style="object-fit: contain;"/>
+                </h2>
+                <p class="welcome-text">Create your professional bookkeeping account</p>
+            </div>
+
+            <form class="registration-form" id="personalForm">
+                <div class="step-indicator">
+                    <div class="step active" data-step="1">
+                        <span class="step-number">1</span>
+                        <span class="step-label">Personal</span>
+                    </div>
+                    <div class="step" data-step="2">
+                        <span class="step-number">2</span>
+                        <span class="step-label">Business</span>
+                    </div>
+                    <div class="step" data-step="3">
+                        <span class="step-number">3</span>
+                        <span class="step-label">Account</span>
+                    </div>
+                </div>
+
+                <div class="form-step active">
+                    <h3 class="step-title">Personal Information</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName" class="form-label">First Name</label>
+                            <input type="text" id="firstName" name="firstName" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName" class="form-label">Last Name</label>
+                            <input type="text" id="lastName" name="lastName" class="form-input" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" id="email" name="email" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone" class="form-label">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Gender</label>
+                        <div class="gender-options">
+                            <label class="radio-container">
+                                <input type="radio" name="gender" value="male" required>
+                                <span class="radio-label">Male</span>
+                            </label>
+                            <label class="radio-container">
+                                <input type="radio" name="gender" value="female" required>
+                                <span class="radio-label">Female</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="certification" class="form-label">Professional Certification</label>
+                        <select id="certification" name="certification" class="form-input">
+                            <option value="">Select Certification</option>
+                            <option value="cpa">Certified Public Accountant (CPA)</option>
+                            <option value="cma">Certified Management Accountant (CMA)</option>
+                            <option value="ea">Enrolled Agent (EA)</option>
+                            <option value="qb-certified">QuickBooks Certified</option>
+                            <option value="other">Other</option>
+                            <option value="none">No Certification</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-navigation">
+                    <a href="login.html" class="nav-button prev-button">Back to Login</a>
+                    <button type="submit" class="nav-button next-button">Continue to Business Info</button>
+                </div>
+
+                <div class="divider">
+                    <span class="divider-line"></span>
+                    <span class="divider-text">or</span>
+                    <span class="divider-line"></span>
+                </div>
+
+                <a href="login.html" class="login-link">Already have an account? Sign In</a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase Configuration and Services -->
+    <script src="../assets/js/firebase/firebaseConfig.js"></script>
+    <script src="../assets/js/firebase/firebaseInit.js"></script>
+    <script src="../assets/js/firebase/authService.js"></script>
+    <script src="../assets/js/firebase/userDataService.js"></script>
+
+    <script src="../assets/js/registration_personal.js"></script>
+</body>
+</html>

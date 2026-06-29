@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Client Detail — BookKeeper</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/dashboard.css">
+  <link rel="stylesheet" href="../assets/css/app_modern.css">
+  <link rel="stylesheet" href="../assets/css/client-detail.css">
+</head>
+<body>
+<div class="app-container">
+  <aside class="sidebar">
+    <div class="logo-section">
+      <div class="logo"><i class="fas fa-book-open"></i> BookKeeper</div>
+      <div class="menu-label">bookkeeping</div>
+    </div>
+    <nav class="nav-menu">
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-chart-line"></i> Dashboard</a>
+      <a href="clients.html" class="nav-item active"><i class="fas fa-users"></i> Clients</a>
+      <a href="billing.html" class="nav-item"><i class="fas fa-file-invoice-dollar"></i> Billing</a>
+      <a href="archive.html" class="nav-item"><i class="fas fa-archive"></i> Archive</a>
+      <a href="notifications.html" class="nav-item"><i class="fas fa-bell"></i> Notifications</a>
+    </nav>
+    <div class="general-section">
+      <div class="section-label">general</div>
+      <nav class="nav-menu">
+        <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i> Settings</a>
+        <a href="#" class="nav-item" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      </nav>
+    </div>
+  </aside>
+  <main class="main-content">
+    <div class="header">
+      <div class="breadcrumb">
+        <a href="clients.html" style="color:#6b7280;text-decoration:none;font-size:14px;"><i class="fas fa-arrow-left" style="margin-right:6px;"></i>Back to Clients</a>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="notification-icon" onclick="goToNotifications()" style="background:#f3f4f6;border:none;border-radius:50%;width:40px;height:40px;cursor:pointer;position:relative;">
+          <i class="fas fa-bell" style="color:#6b7280;"></i>
+          <span id="notificationBadge" class="notification-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ff928a;color:#fff;border-radius:50%;min-width:18px;height:18px;font-size:10px;font-weight:700;align-items:center;justify-content:center;padding:0 4px;"></span>
+        </button>
+        <div class="user-avatar" onclick="openProfileModal()" style="cursor:pointer;">
+          <img id="userAvatarHeader" src="" alt="User" width="40" height="40" style="border-radius:50%;object-fit:cover;">
+        </div>
+      </div>
+    </div>
+    <div id="loadingState" style="text-align:center;padding:80px 20px;color:#6b7280;">
+      <i class="fas fa-circle-notch fa-spin" style="font-size:36px;color:#00adef;display:block;margin-bottom:16px;"></i>
+      <p>Loading client…</p>
+    </div>
+    <div id="clientContent" style="display:none;">
+      <div class="client-hero-card">
+        <div style="display:flex;gap:16px;align-items:flex-start;">
+          <div class="client-hero-avatar" id="clientAvatar">A</div>
+          <div class="client-hero-info">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <h1 id="clientBusinessName">—</h1>
+              <span class="status-pill" id="clientStatusPill">active</span>
+            </div>
+            <p id="clientContactPerson" style="color:rgba(255,255,255,.9);margin-top:6px;"></p>
+            <div class="hero-meta">
+              <span><i class="fas fa-envelope"></i><span id="clientEmail">—</span></span>
+              <span><i class="fas fa-phone"></i><span id="clientPhone">—</span></span>
+              <span><i class="fas fa-briefcase"></i><span id="clientBusinessType">—</span></span>
+            </div>
+          </div>
+        </div>
+        <div class="client-hero-actions">
+          <button type="button" class="hero-btn" onclick="editCurrentClient()"><i class="fas fa-edit"></i> Edit</button>
+          <button type="button" class="hero-btn hero-btn-invoice" onclick="goToBilling()"><i class="fas fa-file-invoice"></i> New statement</button>
+          <button type="button" class="hero-btn hero-btn-danger" onclick="deleteCurrentClient()"><i class="fas fa-trash"></i> Delete</button>
+        </div>
+      </div>
+      <div class="detail-stats-row">
+        <div class="detail-stat">
+          <div class="detail-stat-icon" style="background:#2e319220;color:#2e3192;"><i class="fas fa-peso-sign"></i></div>
+          <div><div class="detail-stat-label">Monthly fee</div><div class="detail-stat-value" id="statMonthlyFee">₱0</div></div>
+        </div>
+        <div class="detail-stat">
+          <div class="detail-stat-icon" style="background:#00adef20;color:#00adef;"><i class="fas fa-file-invoice"></i></div>
+          <div><div class="detail-stat-label">Statements</div><div class="detail-stat-value" id="statTotalInvoices">0</div></div>
+        </div>
+        <div class="detail-stat">
+          <div class="detail-stat-icon" style="background:#6fd19520;color:#166534;"><i class="fas fa-check-circle"></i></div>
+          <div><div class="detail-stat-label">Total paid</div><div class="detail-stat-value" id="statTotalPaid">₱0</div></div>
+        </div>
+        <div class="detail-stat">
+          <div class="detail-stat-icon" style="background:#ff928a20;color:#991b1b;"><i class="fas fa-clock"></i></div>
+          <div><div class="detail-stat-label">Outstanding</div><div class="detail-stat-value" id="statOutstanding">₱0</div></div>
+        </div>
+      </div>
+      <div class="detail-tabs">
+        <button type="button" class="detail-tab active" onclick="switchTab('info',this)"><i class="fas fa-info-circle"></i> Overview</button>
+        <button type="button" class="detail-tab" onclick="switchTab('billing',this)"><i class="fas fa-file-invoice-dollar"></i> Billing</button>
+      </div>
+      <div id="tabInfo" class="tab-panel">
+        <div class="info-grid">
+          <div class="info-card">
+            <h3><i class="fas fa-building"></i> Business</h3>
+            <div class="info-rows">
+              <div class="info-row"><span class="info-label">Name</span><span id="infoBizName">—</span></div>
+              <div class="info-row"><span class="info-label">Contact</span><span id="infoContact">—</span></div>
+              <div class="info-row"><span class="info-label">Type</span><span id="infoBizType">—</span></div>
+              <div class="info-row"><span class="info-label">TIN</span><span id="infoTin">—</span></div>
+              <div class="info-row"><span class="info-label">Start</span><span id="infoStartDate">—</span></div>
+            </div>
+          </div>
+          <div class="info-card">
+            <h3><i class="fas fa-address-card"></i> Contact</h3>
+            <div class="info-rows">
+              <div class="info-row"><span class="info-label">Email</span><span id="infoEmail">—</span></div>
+              <div class="info-row"><span class="info-label">Phone</span><span id="infoPhone">—</span></div>
+              <div class="info-row"><span class="info-label">Address</span><span id="infoAddress">—</span></div>
+              <div class="info-row"><span class="info-label">Last payment</span><span id="infoLastPayment">—</span></div>
+              <div class="info-row"><span class="info-label">Monthly fee</span><span id="infoMonthlyFee" style="font-weight:700;color:#2e3192;">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="tabBilling" class="tab-panel" style="display:none;">
+        <div class="billing-history-header">
+          <h3 style="margin:0;color:#2e3192;">Billing history</h3>
+          <button type="button" class="hero-btn hero-btn-invoice" style="font-size:13px;padding:8px 14px;" onclick="goToBilling()"><i class="fas fa-plus"></i> New</button>
+        </div>
+        <div id="billingHistoryContainer"></div>
+      </div>
+    </div>
+    <div id="notFoundState" style="display:none;text-align:center;padding:80px 20px;color:#6b7280;">
+      <i class="fas fa-user-slash" style="font-size:48px;opacity:.35;display:block;margin-bottom:12px;"></i>
+      <h2 style="color:#2e3192;">Client not found</h2>
+      <p>This record may have been removed.</p>
+      <a href="clients.html" class="hero-btn hero-btn-invoice" style="display:inline-flex;margin-top:20px;text-decoration:none;">Back</a>
+    </div>
+  </main>
+</div>
+<div id="profileModal" class="modal" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.45);align-items:center;justify-content:center;">
+  <div class="modal-content profile-modal" style="max-width:320px;margin:auto;background:#fff;border-radius:16px;padding:0;overflow:hidden;">
+    <div class="profile-header" style="padding:24px;text-align:center;">
+      <img id="userAvatarProfile" src="" alt="" class="profile-image" style="width:72px;height:72px;border-radius:50%;">
+      <h3 id="profileName" style="margin-top:12px;">User</h3>
+    </div>
+    <div class="profile-actions" style="padding:12px 0;">
+      <a href="settings.html" style="display:block;padding:12px 20px;color:#262626;text-decoration:none;"><i class="fas fa-cog"></i> Settings</a>
+      <a href="#" onclick="logout();return false;" style="display:block;padding:12px 20px;color:#262626;text-decoration:none;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<script src="../assets/js/firebase/firebaseConfig.js"></script>
+<script src="../assets/js/firebase/firebaseInit.js"></script>
+<script src="../assets/js/firebase/authService.js"></script>
+<script src="../assets/js/firebase/userDataService.js"></script>
+<script src="../assets/js/firebase/authGuard.js"></script>
+<script src="../assets/js/firebase/logout.js"></script>
+<script src="../assets/js/client-detail.js"></script>
+</body>
+</html>

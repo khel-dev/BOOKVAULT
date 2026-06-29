@@ -1,0 +1,465 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background:
+    linear-gradient(rgba(0, 173, 239, 0.18), rgba(46, 49, 146, 0.12)),
+    radial-gradient(1000px 700px at 20% 10%, rgba(0, 173, 239, 0.22), transparent 55%),
+    radial-gradient(900px 700px at 80% 20%, rgba(46, 49, 146, 0.18), transparent 55%),
+    radial-gradient(900px 800px at 50% 80%, rgba(11, 153, 255, 0.10), transparent 60%),
+    #f7fbff;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.container {
+  display: flex;
+  gap: 40px;
+  max-width: 1400px;
+  width: 100%;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.logo-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  border-radius: 22px;
+  padding: 30px 25px;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  box-shadow: 0 24px 80px rgba(2, 28, 47, 0.14);
+  text-align: center;
+  min-width: 350px;
+  position: sticky;
+  top: 20px;
+  align-self: center;
+}
+
+.logo-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo-icon {
+  margin-bottom: 10px;
+}
+
+.logo-text {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2e3192;
+  letter-spacing: 2px;
+  margin: 0;
+}
+
+.logo-subtitle {
+  color: #6b7280;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+/* Registration Card */
+.registration-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
+  padding: 25px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;      /* ← hindi lalagpas sa screen */
+  overflow-y: auto;      /* ← mag-scroll nalang kung maraming content */
+}
+
+.registration-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.brand-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #2e3192;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.welcome-text {
+  color: #6b7280;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Step Indicator */
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+  gap: 20px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.5;
+  transition: all 0.3s ease;
+}
+
+.step.active {
+  opacity: 1;
+}
+
+.step.completed {
+  opacity: 1;
+  color: #00adef;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.step.active .step-number {
+  background: #00adef;
+  color: white;
+}
+
+.step.completed .step-number {
+  background: #10b981;
+  color: white;
+}
+
+.step-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.step.active .step-label {
+  color: #00adef;
+}
+
+/* Form Steps */
+.form-step {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.step-title {
+  color: #2e3192;
+  font-size: 1.1rem;     /* bago: 1.4rem → 1.1rem */
+  font-weight: 600;
+  margin-bottom: 16px;   /* bago: 30px → 16px */
+  text-align: center;
+}
+
+.registration-header {
+  text-align: center;
+  margin-bottom: 20px;   /* bago: 40px → 20px */
+}
+
+/* Form Styles */
+.registration-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;   /* bago: 24px → 12px */
+}
+
+.form-group {
+  position: relative;
+}
+
+.form-label {
+  display: block;
+  color: #00adef;
+  font-weight: 500;
+  margin-bottom: 4px;    /* bago: 8px → 4px */
+  font-size: 0.85rem;    /* bago: 0.95rem → 0.85rem */
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 16px;   /* bago: 16px 20px → 10px 16px */
+  border: 2px solid #00adef;
+  border-radius: 50px;
+  font-size: 0.9rem;    /* bago: 1rem → 0.9rem */
+  background: #ffffff;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: #2e3192;
+  box-shadow: 0 0 0 3px rgba(0, 173, 239, 0.1);
+}
+
+.form-input::placeholder {
+  color: #9ca3af;
+}
+
+select.form-input {
+  cursor: pointer;
+}
+
+.input-hint {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-top: 5px;
+}
+
+/* Password Strength */
+.password-strength {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.password-strength.weak {
+  color: #ef4444;
+}
+
+.password-strength.medium {
+  color: #f59e0b;
+}
+
+.password-strength.strong {
+  color: #10b981;
+}
+
+.password-match {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.password-match.match {
+  color: #10b981;
+}
+
+.password-match.no-match {
+  color: #ef4444;
+}
+
+/* Checkbox */
+.form-options {
+  display: flex;
+  align-items: flex-start;
+  margin: 8px 0;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: flex-start;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #6b7280;
+  gap: 8px;
+  line-height: 1.4;
+}
+
+.checkbox-container input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #00adef;
+  cursor: pointer;
+  margin-top: 2px;
+}
+
+.link {
+  color: #00adef;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+/* Navigation Buttons */
+.form-navigation {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.nav-button {
+  padding: 10px 20px;       /* bago: 16px 32px → 10px 20px */
+  border-radius: 50px;
+  font-size: 0.9rem;        /* bago: 1.1rem → 0.9rem */
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  flex: 1;
+  text-decoration: none;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.prev-button {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.prev-button:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.submit-button {
+  background: #00adef;
+  color: white;
+}
+
+.submit-button:hover {
+  background: #0088cc;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0, 173, 239, 0.3);
+}
+
+.nav-button:active {
+  transform: translateY(0);
+}
+
+.nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Divider */
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 24px 0 16px 0;
+  gap: 16px;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.divider-text {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Login Link */
+.login-link {
+  text-align: center;
+  color: #374151;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: color 0.3s ease;
+}
+
+.login-link:hover {
+  color: #00adef;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .container {
+    flex-direction: column;
+    gap: 30px;
+    align-items: center;
+  }
+
+  .logo-card {
+    position: static;
+    min-width: auto;
+    width: 100%;
+    max-width: 600px;
+    padding: 40px 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .registration-card {
+    padding: 30px;
+  }
+
+  .step-indicator {
+    gap: 15px;
+  }
+
+  .step-number {
+    width: 35px;
+    height: 35px;
+  }
+
+  .step-label {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 15px;
+  }
+
+  .logo-card,
+  .registration-card {
+    padding: 25px 20px;
+  }
+
+  .brand-title {
+    font-size: 1.5rem;
+  }
+
+  .logo-text {
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+  }
+
+ .form-navigation {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 10px;    /* bago: 20px → 10px */
+}
+
+  .nav-button {
+    flex: none;
+  }
+}

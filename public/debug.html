@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookVault - Firebase Debug</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2e3192;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .status {
+            margin: 15px 0;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .status.ok {
+            background: #dcfce7;
+            color: #166534;
+            border-left: 4px solid #16a34a;
+        }
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #dc2626;
+        }
+        .status.loading {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 4px solid #f59e0b;
+        }
+        .log {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+            line-height: 1.6;
+        }
+        button {
+            background: #2e3192;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: 500;
+        }
+        button:hover {
+            background: #1e2a5f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Firebase Debug Console</h1>
+        
+        <div id="status"></div>
+        <pre id="log" class="log"></pre>
+        
+        <button onclick="location.href='app/registration_personal.html'">Go to Registration</button>
+        <button onclick="location.href='app/login.html'">Go to Login</button>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase Configuration and Services -->
+    <script src="assets/js/firebase/firebaseConfig.js"></script>
+    <script src="assets/js/firebase/firebaseInit.js"></script>
+    <script src="assets/js/firebase/authService.js"></script>
+    <script src="assets/js/firebase/userDataService.js"></script>
+
+    <script>
+        const logEl = document.getElementById('log');
+        const statusEl = document.getElementById('status');
+        const logs = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}`;
+            logs.push(logMessage);
+            logEl.textContent = logs.join('\n');
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+
+        function addStatus(label, isOk, message) {
+            const div = document.createElement('div');
+            div.className = `status ${isOk ? 'ok' : 'error'}`;
+            div.textContent = (isOk ? '✓' : '✗') + ' ' + label + (message ? ': ' + message : '');
+            statusEl.appendChild(div);
+        }
+
+        // Start checks
+        log('🚀 Starting Firebase debug checks...');
+
+        // Check 1: Firebase config
+        setTimeout(() => {
+            if (window.__BOOKVAULT_FIREBASE_CONFIG__) {
+                log('✓ Firebase config found');
+                addStatus('Firebase Config', true);
+            } else {
+                log('✗ Firebase config missing!');
+                addStatus('Firebase Config', false, 'Check firebaseConfig.js');
+            }
+        }, 100);
+
+        // Check 2: Firebase SDK
+        setTimeout(() => {
+            if (window.firebase) {
+                log('✓ Firebase SDK loaded');
+                addStatus('Firebase SDK', true);
+            } else {
+                log('✗ Firebase SDK not loaded!');
+                addStatus('Firebase SDK', false, 'Check CDN scripts');
+            }
+        }, 200);
+
+        // Check 3: Firebase initialization
+        setTimeout(() => {
+            if (window.firebaseInitialized) {
+                log('✓ Firebase initialized');
+                addStatus('Firebase Initialization', true);
+            } else {
+                log('✗ Firebase not initialized yet');
+                addStatus('Firebase Initialization', false, 'Still loading...');
+            }
+        }, 500);
+
+        // Check 4: Auth service
+        setTimeout(() => {
+            if (window.authService) {
+                log('✓ Auth service ready');
+                addStatus('Auth Service', true);
+            } else {
+                log('✗ Auth service not ready');
+                addStatus('Auth Service', false, 'Check authService.js');
+            }
+        }, 1000);
+
+        // Check 5: Data service
+        setTimeout(() => {
+            if (window.userDataService) {
+                log('✓ User data service ready');
+                addStatus('User Data Service', true);
+            } else {
+                log('✗ User data service not ready');
+                addStatus('User Data Service', false, 'Check userDataService.js');
+            }
+        }, 1000);
+
+        // Check 6: Firebase auth state
+        setTimeout(() => {
+            if (window.firebaseAuth) {
+                log('✓ Firebase auth initialized');
+                addStatus('Firebase Auth', true);
+            } else {
+                log('✗ Firebase auth not initialized');
+                addStatus('Firebase Auth', false);
+            }
+        }, 1500);
+
+        // Check 7: Firestore
+        setTimeout(() => {
+            if (window.firebaseDb) {
+                log('✓ Firestore initialized');
+                addStatus('Firestore', true);
+            } else {
+                log('✗ Firestore not initialized');
+                addStatus('Firestore', false);
+            }
+        }, 1500);
+
+        // Final summary
+        setTimeout(() => {
+            log('');
+            log('✅ Debug checks complete');
+            if (window.firebaseInitialized && window.authService && window.userDataService) {
+                log('🎉 All systems ready! You can test registration/login now.');
+            } else {
+                log('⚠️  Some systems not ready. Check errors above.');
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookKeeping - Business Information</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/registration_business.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo-card">
+            <div class="logo-content">
+                <div class="logo-icon">
+                    <img src="../assets/img/BookVault Logo.png" alt="BookVault Logo" width="120" height="80" style="object-fit: contain;"/>
+                </div>
+                <h1 class="logo-text">BOOKKEEPER</h1>
+                <p class="logo-subtitle">Professional Bookkeeping Made Simple</p>
+            </div>
+        </div>
+
+        <div class="registration-card">
+            <div class="registration-header">
+                <h2 class="brand-title">
+                    Join BookKeeper 
+                    <img src="../assets/img/BookVault Logo.png" alt="BookVault Logo" width="60" height="50" style="object-fit: contain;"/>
+                </h2>
+                </h2>
+                <p class="welcome-text">Create your professional bookkeeping account</p>
+            </div>
+
+            <form class="registration-form" id="businessForm">
+                <div class="step-indicator">
+                    <div class="step completed" data-step="1">
+                        <span class="step-number">1</span>
+                        <span class="step-label">Personal</span>
+                    </div>
+                    <div class="step active" data-step="2">
+                        <span class="step-number">2</span>
+                        <span class="step-label">Business</span>
+                    </div>
+                    <div class="step" data-step="3">
+                        <span class="step-number">3</span>
+                        <span class="step-label">Account</span>
+                    </div>
+                </div>
+
+                <div class="form-step active">
+                    <h3 class="step-title">Business Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="businessName" class="form-label">Business/Firm Name</label>
+                        <input type="text" id="businessName" name="businessName" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="businessType" class="form-label">Business Type</label>
+                        <select id="businessType" name="businessType" class="form-input" required>
+                            <option value="">Select Business Type</option>
+                            <option value="sole-proprietorship">Sole Proprietorship</option>
+                            <option value="partnership">Partnership</option>
+                            <option value="corporation">Corporation</option>
+                            <option value="llc">LLC</option>
+                            <option value="accounting-firm">Accounting Firm</option>
+                            <option value="freelance">Freelance Bookkeeper</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="experience" class="form-label">Years of Experience</label>
+                        <select id="experience" name="experience" class="form-input" required>
+                            <option value="">Select Experience</option>
+                            <option value="0-1">0-1 years</option>
+                            <option value="2-5">2-5 years</option>
+                            <option value="6-10">6-10 years</option>
+                            <option value="11-15">11-15 years</option>
+                            <option value="15+">15+ years</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clientCount" class="form-label">Expected Number of Clients</label>
+                        <select id="clientCount" name="clientCount" class="form-input" required>
+                            <option value="">Select Range</option>
+                            <option value="1-10">1-10 clients</option>
+                            <option value="11-25">11-25 clients</option>
+                            <option value="26-50">26-50 clients</option>
+                            <option value="51-100">51-100 clients</option>
+                            <option value="100+">100+ clients</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address" class="form-label">Business Address</label>
+                        <textarea id="address" name="address" class="form-input" rows="3" placeholder="Enter your business address"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-navigation">
+                    <a href="registration_personal.html" class="nav-button prev-button">Back to Personal Info</a>
+                    <button type="submit" class="nav-button next-button">Continue to Account Setup</button>
+                </div>
+
+                <div class="divider">
+                    <span class="divider-line"></span>
+                    <span class="divider-text">or</span>
+                    <span class="divider-line"></span>
+                </div>
+
+                <a href="login.html" class="login-link">Already have an account? Sign In</a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase Configuration and Services -->
+    <script src="../assets/js/firebase/firebaseConfig.js"></script>
+    <script src="../assets/js/firebase/firebaseInit.js"></script>
+    <script src="../assets/js/firebase/authService.js"></script>
+    <script src="../assets/js/firebase/userDataService.js"></script>
+
+    <script src="../assets/js/registration_business.js"></script>
+</body>
+</html>
